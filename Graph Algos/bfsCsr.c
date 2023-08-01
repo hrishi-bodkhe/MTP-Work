@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<limits.h>
 
 // Node structure for adjacency list
 typedef struct Node{
@@ -129,7 +130,11 @@ void constructCSR(Graph* graph, int edges, int weighted, int directed, int* inde
 			
 			Node* node = graph->adjList[src];
 			
-			if(!node) index[src] = edgeCount - 1;
+			if(!node) {
+                headVertex[edgeCount] = -1;
+                weight[edgeCount] = -1;
+                ++edgeCount;
+            }
 
 			while(node){
 				int dest = node->vertex;
@@ -149,7 +154,10 @@ void constructCSR(Graph* graph, int edges, int weighted, int directed, int* inde
 			
 			Node* node = graph->adjList[src];
 			
-			if(!node) index[src] = edgeCount - 1;
+			if(!node) {
+                headVertex[edgeCount] = -1;
+                ++edgeCount;
+            }
 
 			while(node){
 				int dest = node->vertex;
@@ -182,10 +190,82 @@ void printCSR(int vertices, int edges, int* index, int* headVertex, int* weight,
 	printf("\n");
 }
 
+void bfsCSR(int src, int vertices, int* index, int* headVertex){
+    int dist[vertices], parent[vertices];
+    for(int i = 0; i < vertices; ++i) {
+        dist[i] = INT_MAX;
+        parent[i] = -1;
+    }
+    dist[src] = 0;
+    parent[src] = 0;
+
+    int changed;
+    while(1){
+        changed = 0;
+        
+        for(int u = 0; u < vertices; ++u){
+            int start = index[u];
+            int end = index[u + 1];
+			for(int j = start; j < end; ++j){
+				int v = headVertex[j];
+                if(v == -1) continue;
+				if(dist[u] != INT_MAX && dist[v] > dist[u] + 1){
+					dist[v] = dist[u] + 1;
+					parent[v] = u;
+					changed = 1;
+				}
+			}
+		}
+
+        if(changed == 0) break;
+    }
+
+    printf("\n");
+    for(int i = 0; i < vertices; ++i) printf("%d ", dist[i]);
+    printf("\n");
+    for(int i = 0; i < vertices; ++i) printf("%d ", parent[i]);
+}
+
+void bfsCSRweighted(int src, int vertices, int* index, int* headVertex, int* weight){
+    int dist[vertices], parent[vertices];
+    for(int i = 0; i < vertices; ++i) {
+        dist[i] = INT_MAX;
+        parent[i] = -1;
+    }
+    dist[src] = 0;
+    parent[src] = 0;
+
+    int changed;
+    while(1){
+        changed = 0;
+        
+        for(int u = 0; u < vertices; ++u){
+            int start = index[u];
+            int end = index[u + 1];
+			for(int j = start; j < end; ++j){
+				int v = headVertex[j];
+                int wt = weight[j];
+
+                if(v == -1) continue;
+
+				if(dist[u] != INT_MAX && dist[v] > dist[u] + wt){
+					dist[v] = dist[u] + wt;
+					parent[v] = u;
+					changed = 1;
+				}
+			}
+		}
+
+        if(changed == 0) break;
+    }
+
+    printf("\n");
+    for(int i = 0; i < vertices; ++i) printf("%d ", dist[i]);
+    printf("\n");
+    for(int i = 0; i < vertices; ++i) printf("%d ", parent[i]);
+}
 
 int main(){
-	int n = 5;
-	Graph* graph = createGraph(n);
 
 	FILE *file = fopen("input.txt", "r");
 	if(file == NULL){
@@ -195,7 +275,8 @@ int main(){
 
 	int vertices, edges, directed, weighted;
 	fscanf(file, "%d %d %d %d", &vertices, &edges, &directed, &weighted);
-	
+	int n = vertices;
+	Graph* graph = createGraph(n);
 	constructAdjList(graph, edges, file, weighted, directed);
 	printGraph(graph, weighted);
 
@@ -213,6 +294,13 @@ int main(){
 	}
 
 	constructCSR(graph, edges, weighted, directed, index, headVertex, weight);
+
+    if(weighted == 1){
+        bfsCSRweighted(0, vertices, index, headVertex, weight);
+    }
+    else{
+        bfsCSR(0, vertices, index, headVertex);
+    }
 
 	if(directed == 0) edges *= 2;
 	printCSR(vertices, edges, index, headVertex, weight, weighted);
