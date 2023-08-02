@@ -295,15 +295,15 @@ int main(){
 
 	constructCSR(graph, edges, weighted, directed, index, headVertex, weight);
 
+	if(directed == 0) edges *= 2;
+	printCSR(vertices, edges, index, headVertex, weight, weighted);
+
     if(weighted == 1){
         bfsCSRweighted(0, vertices, index, headVertex, weight);
     }
     else{
         bfsCSR(0, vertices, index, headVertex);
     }
-
-	if(directed == 0) edges *= 2;
-	printCSR(vertices, edges, index, headVertex, weight, weighted);
 
 	freeGraph(graph);
 	free(index);

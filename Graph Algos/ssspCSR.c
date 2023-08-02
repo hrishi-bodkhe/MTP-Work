@@ -132,7 +132,9 @@ void constructCSR(Graph* graph, int edges, int weighted, int directed, int* inde
 			
 			if(!node) {
                 headVertex[edgeCount] = -1;
+                weight[edgeCount] = -1;
                 ++edgeCount;
+
             }
 
 			while(node){
@@ -189,6 +191,48 @@ void printCSR(int vertices, int edges, int* index, int* headVertex, int* weight,
 	printf("\n");
 }
 
+void sssp(int vertices, int* index, int* headVertex, int* weight, int src){
+	int n = vertices;
+	int dist[n], parent[n];
+
+	for(int i = 0; i < n; ++i){
+		dist[i] = INT_MAX;
+		parent[i] = -1;
+	}
+
+	dist[src] = 0;
+
+	int changed;
+
+	while(1){
+		changed = 0;
+		for(int u = 0; u < n; ++u){
+			int startIdx = index[u];
+            int endIdx = index[u + 1];
+
+			for(int i = startIdx; i < endIdx; ++i){
+				int v = headVertex[i];
+				int wt = weight[i];
+
+                if(v == -1) break;
+
+				if(dist[v] > dist[u] + wt){
+					dist[v] = dist[u] + wt;
+					parent[v] = u;
+					changed = 1;
+				}
+			}
+		}
+
+		if(changed == 0) break;
+	}
+
+	for(int i = 0; i < n; ++i)
+		printf("%d ", dist[i]);
+	printf("\n");
+	for(int i = 0; i < n; ++i)
+		printf("%d ", parent[i]);
+}
 
 int main(){
 	FILE *file = fopen("input.txt", "r");
@@ -199,8 +243,7 @@ int main(){
 
 	int vertices, edges, directed, weighted;
 	fscanf(file, "%d %d %d %d", &vertices, &edges, &directed, &weighted);
-
-	int n = vertices;
+    int n = vertices;
 	Graph* graph = createGraph(n);
 	
 	constructAdjList(graph, edges, file, weighted, directed);
@@ -223,6 +266,8 @@ int main(){
 
 	if(directed == 0) edges *= 2;
 	printCSR(vertices, edges, index, headVertex, weight, weighted);
+
+    sssp(vertices, index, headVertex, weight, 0);
 
 	freeGraph(graph);
 	free(index);
