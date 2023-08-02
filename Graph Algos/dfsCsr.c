@@ -237,9 +237,6 @@ void dfsCSR(int src, int vertices, int* index, int* headVertex){
 	printf("\n");
 }
 
-void dfsCSRweighted(int src, int vertices, int* index, int* headVertex, int* weight){
-}
-
 int main(){
 
 	FILE *file = fopen("input.txt", "r");
