@@ -1,6 +1,5 @@
-#include<bits/stdc++.h>
-using namespace std;
-#define ll long long
+#include"bfs.h"
+#include"dfs.h"
 
 struct Edge{
     ll src;        //source
@@ -46,6 +45,15 @@ int main(){
 
     // //print CSR
     printCSR(index, headvertex, weights);
+
+    vector<ll> dist(vertices, INT_MAX);
+    vector<ll>parent(vertices, -1);
+
+    if(weighted) bfsCSRweighted(0, vertices, index, headvertex, weights, dist, parent);
+    else bfsCSR(0, vertices, index, headvertex, dist, parent);
+
+    dfsCSR(0, vertices, index, headvertex);
+
     return 0;
 }
 
