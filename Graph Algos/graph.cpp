@@ -1,5 +1,7 @@
 #include"bfs.h"
 #include"dfs.h"
+#include"sssp.h"
+#include"connectedComp.h"
 
 struct Edge{
     ll src;        //source
@@ -49,10 +51,17 @@ int main(){
     vector<ll> dist(vertices, INT_MAX);
     vector<ll>parent(vertices, -1);
 
-    if(weighted) bfsCSRweighted(0, vertices, index, headvertex, weights, dist, parent);
-    else bfsCSR(0, vertices, index, headvertex, dist, parent);
+    // if(weighted) bfsCSRweighted(0, vertices, index, headvertex, weights, dist, parent);
+    // else bfsCSR(0, vertices, index, headvertex, dist, parent);
 
-    dfsCSR(0, vertices, index, headvertex);
+    // dfsCSR(0, vertices, index, headvertex);
+    // sssp(vertices, index, headvertex, weights, 0, dist, parent);
+
+    // vector<ll> color(vertices, 0);
+    // vector<ll> component(vertices, -1);
+    // findConnComp(0, vertices, index, headvertex, color, component);
+
+    
 
     return 0;
 }
