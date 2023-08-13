@@ -1,8 +1,9 @@
 #ifndef DFS_H
 #define DFS_H
-#include"preprocessing.h"
+#include "preprocessing.h"
 
-void traverse(ll u, vector<ll>& index, vector<ll>& headVertex, ll color[], ll *clock, ll starttime[], ll fintime[]);
-void dfsCSR(ll src, ll vertices, vector<ll>& index, vector<ll>& headVertex);
+void traverse(ll u, vector<ll> &index, vector<ll> &headVertex, ll color[], ll *clock, vector<ll> &starttime, vector<ll> &fintime);
+
+void dfsCSR(ll src, ll vertices, vector<ll> &index, vector<ll> &headVertex, vector<ll> &starttime, vector<ll> &fintime);
 
 #endif

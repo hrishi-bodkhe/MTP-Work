@@ -1,24 +1,26 @@
-#include<stdio.h>
-#include<limits.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
 
 // Node structure for adjacency list
-typedef struct Node{
+typedef struct Node
+{
 	int vertex;
 	int weight;
-	struct Node* next;
-}Node;
-
+	struct Node *next;
+} Node;
 
 // Graph structure with an array of adjacency lists
-typedef struct Graph{
+typedef struct Graph
+{
 	int numVertices;
-	Node** adjList;
-}Graph;
+	Node **adjList;
+} Graph;
 
 // Function to create a new node
-Node* createNode(int v, int weight){
-	Node* node = (Node*)malloc(sizeof(Node));
+Node *createNode(int v, int weight)
+{
+	Node *node = (Node *)malloc(sizeof(Node));
 	node->vertex = v;
 	node->weight = weight;
 	node->next = NULL;
@@ -27,21 +29,23 @@ Node* createNode(int v, int weight){
 }
 
 // Function to create a graph with a given number of vertices
-Graph* createGraph(int vertices){
-	Graph* graph = (Graph*)malloc(sizeof(Graph));
+Graph *createGraph(int vertices)
+{
+	Graph *graph = (Graph *)malloc(sizeof(Graph));
 	graph->numVertices = vertices;
 
-	graph->adjList = (Node**)malloc(vertices * sizeof(Node*));
+	graph->adjList = (Node **)malloc(vertices * sizeof(Node *));
 
-	for(int i = 0; i < vertices; ++i)
+	for (int i = 0; i < vertices; ++i)
 		graph->adjList[i] = NULL;
 
 	return graph;
 }
 
 // Function to add an edge to an undirected graph
-void addEdge(Graph* graph, int u, int v, int wt){
-	Node* node = createNode(v, wt);
+void addEdge(Graph *graph, int u, int v, int wt)
+{
+	Node *node = createNode(v, wt);
 	node->next = graph->adjList[u];
 	graph->adjList[u] = node;
 
@@ -51,14 +55,18 @@ void addEdge(Graph* graph, int u, int v, int wt){
 }
 
 // Function to print the adjacency list representation of a graph
-void printGraph(Graph* graph){
-	if(!graph || !graph->adjList) return;
+void printGraph(Graph *graph)
+{
+	if (!graph || !graph->adjList)
+		return;
 
-	for(int u = 0; u < graph->numVertices; ++u){
-		Node* node = graph->adjList[u];
+	for (int u = 0; u < graph->numVertices; ++u)
+	{
+		Node *node = graph->adjList[u];
 
 		printf("For %d: ", u);
-		while(node){   
+		while (node)
+		{
 			printf("(%d, %d)->", node->vertex, node->weight);
 			node = node->next;
 		}
@@ -66,14 +74,18 @@ void printGraph(Graph* graph){
 	}
 }
 
-void freeGraph(Graph* graph){
-	if(!graph || !graph->adjList) return;
+void freeGraph(Graph *graph)
+{
+	if (!graph || !graph->adjList)
+		return;
 
-	for(int i = 0; i < graph->numVertices; ++i){
-		Node* node = graph->adjList[i];
+	for (int i = 0; i < graph->numVertices; ++i)
+	{
+		Node *node = graph->adjList[i];
 
-		while(node){
-			Node* prev = node;
+		while (node)
+		{
+			Node *prev = node;
 			node = node->next;
 			prev->next = NULL;
 			free(prev);
@@ -84,12 +96,13 @@ void freeGraph(Graph* graph){
 	free(graph);
 }
 
-
-void sssp(Graph* graph, int src){
+void sssp(Graph *graph, int src)
+{
 	int n = graph->numVertices;
 	int dist[n], parent[n];
 
-	for(int i = 0; i < n; ++i){
+	for (int i = 0; i < n; ++i)
+	{
 		dist[i] = INT_MAX;
 		parent[i] = -1;
 	}
@@ -98,15 +111,19 @@ void sssp(Graph* graph, int src){
 
 	int changed;
 
-	while(1){
+	while (1)
+	{
 		changed = 0;
-		for(int u = 0; u < n; ++u){
-			Node* node = graph->adjList[u];
-			while(node){
+		for (int u = 0; u < n; ++u)
+		{
+			Node *node = graph->adjList[u];
+			while (node)
+			{
 				int v = node->vertex;
 				int wt = node->weight;
 
-				if(dist[v] > dist[u] + wt){
+				if (dist[v] > dist[u] + wt)
+				{
 					dist[v] = dist[u] + wt;
 					parent[v] = u;
 					changed = 1;
@@ -116,18 +133,20 @@ void sssp(Graph* graph, int src){
 			}
 		}
 
-		if(changed == 0) break;
+		if (changed == 0)
+			break;
 	}
 
-	for(int i = 0; i < n; ++i)
+	for (int i = 0; i < n; ++i)
 		printf("%d ", dist[i]);
 	printf("\n");
-	for(int i = 0; i < n; ++i)
+	for (int i = 0; i < n; ++i)
 		printf("%d ", parent[i]);
 }
-int main(){
+int main()
+{
 	int n = 5;
-	Graph* graph = createGraph(n);
+	Graph *graph = createGraph(n);
 
 	addEdge(graph, 0, 1, 5);
 	addEdge(graph, 0, 4, 2);
@@ -140,7 +159,6 @@ int main(){
 	sssp(graph, 0);
 
 	// printGraph(graph);
-	
 
 	return 0;
 }

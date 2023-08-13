@@ -1,0 +1,7 @@
+CSR:
+index: 0 2 3 4 5 9 10
+head: 1 3 2 5 4 0 1 2 5 1
+
+CSR for G^T:
+index: 0 1 4 6 7 8 10
+head: 4 0 4 5 1 4 0 3 2 4
