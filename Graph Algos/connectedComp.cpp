@@ -19,7 +19,7 @@ void traverseConnComp(ll u, vector<ll> &index, vector<ll> &headVertex, vector<ll
 	color[u] = 2;
 }
 
-void findConnComp(ll src, ll vertices, vector<ll> &index, vector<ll> &headVertex, vector<ll> &color, vector<ll> &component)
+ll findConnComp(ll src, ll vertices, vector<ll> &index, vector<ll> &headVertex, vector<ll> &color, vector<ll> &component)
 {
 	// 0 - white
 	// 1 - grey
@@ -31,12 +31,13 @@ void findConnComp(ll src, ll vertices, vector<ll> &index, vector<ll> &headVertex
 	{
 		if (color[u] == 0)
 		{
-			traverseConnComp(u, index, headVertex, color, count, component);
 			++count;
+			traverseConnComp(u, index, headVertex, color, count, component);
 		}
 	}
 
 	cout << endl;
 	for (ll i = 0; i < vertices; ++i)
 		cout << i << " is in component: " << component[i] << endl;
+	return count;
 }

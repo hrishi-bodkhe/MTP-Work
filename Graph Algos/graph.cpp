@@ -4,6 +4,7 @@
 #include "connectedComp.h"
 #include "scc.h"
 #include "apsp.h"
+#include "weaklycc.h"
 
 int main()
 {
@@ -58,10 +59,16 @@ int main()
     // ll ans = scc(vertices, index, headvertex, edgeList, starttime, fintime);
     // cout << ans << endl;
 
-    vector<vector<ll>> distAPSP(vertices, vector<ll>(vertices, INT_MAX));
-    vector<vector<ll>> parentAPSP(vertices, vector<ll>(vertices, -1));
-    apsp(vertices, edgeList, distAPSP, parentAPSP, directed);
-    printAPSPData(distAPSP, parentAPSP);
+    // vector<vector<ll>> distAPSP(vertices, vector<ll>(vertices, INT_MAX));
+    // vector<vector<ll>> parentAPSP(vertices, vector<ll>(vertices, -1));
+    // apsp(vertices, edgeList, distAPSP, parentAPSP, directed);
+    // printAPSPData(distAPSP, parentAPSP);
+
+    vector<ll> color(vertices, 0);
+    vector<ll> component(vertices, -1);
+
+    ll weaklyConnComp = weaklycc(vertices, edgeList, color, component);
+    cout << weaklyConnComp << endl;
 
     return 0;
 }
