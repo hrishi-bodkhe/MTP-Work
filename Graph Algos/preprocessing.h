@@ -12,6 +12,16 @@ struct Edge
     ll wt;   // weight
 };
 
+struct Node
+{
+    ll vertex;
+    ll parent = -1;
+    ll component = -1;
+    int color = 0;
+    ll startTime = 0;
+    ll finTime = 0;
+};
+
 void readFile(string path, vector<Edge> &edgeList, ll &vertices, ll &edges, int &directed, int &weighted);
 
 void printEdgeList(vector<Edge> &edgeList);

@@ -1,3 +1,4 @@
+#include "config.h"
 #include "bfs.h"
 #include "dfs.h"
 #include "sssp.h"
@@ -43,8 +44,7 @@ int main()
 
     vector<ll> dist(vertices, INT_MAX);
     vector<ll> parent(vertices, -1);
-    vector<ll> starttime(vertices);
-    vector<ll> fintime(vertices);
+    vector<Node> property(vertices);
 
     // if(weighted) bfsCSRweighted(0, vertices, index, headvertex, weights, dist, parent);
     // else bfsCSR(0, vertices, index, headvertex, dist, parent);
@@ -56,19 +56,19 @@ int main()
     // vector<ll> component(vertices, -1);
     // findConnComp(0, vertices, index, headvertex, color, component);
 
-    // ll ans = scc(vertices, index, headvertex, edgeList, starttime, fintime);
-    // cout << ans << endl;
+    ll ans = scc(vertices, index, headvertex, edgeList, property);
+    cout << ans << endl;
 
     // vector<vector<ll>> distAPSP(vertices, vector<ll>(vertices, INT_MAX));
     // vector<vector<ll>> parentAPSP(vertices, vector<ll>(vertices, -1));
     // apsp(vertices, edgeList, distAPSP, parentAPSP, directed);
     // printAPSPData(distAPSP, parentAPSP);
 
-    vector<ll> color(vertices, 0);
-    vector<ll> component(vertices, -1);
+    // vector<ll> color(vertices, 0);
+    // vector<ll> component(vertices, -1);
 
-    ll weaklyConnComp = weaklycc(vertices, edgeList, color, component);
-    cout << weaklyConnComp << endl;
+    // ll weaklyConnComp = weaklycc(vertices, edgeList, color, component);
+    // cout << weaklyConnComp << endl;
 
     return 0;
 }

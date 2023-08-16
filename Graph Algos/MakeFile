@@ -1,0 +1,15 @@
+CXX = g++
+
+SOURCES = preprocessing.h bfs.h dfs.h apsp.h connectedComp.h scc.h sssp.h weaklycc.h mst.h bfs.cpp dfs.cpp graph.cpp apsp.cpp connectedComp.cpp scc.cpp sssp.cpp weaklycc.cpp mst.cpp
+
+EXECUTABLE = output
+
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(SOURCES)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+	
+.PHONY: clean
+
+clean:
+	rm -f $(EXECUTABLE)

@@ -6,6 +6,7 @@ CSR for G^T:
 index: 0 1 4 6 7 8 10
 head: 4 0 4 5 1 4 0 3 2 4
 
+2
 
 wcc for 2nd case
 0 is in component: 1
