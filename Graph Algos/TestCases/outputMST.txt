@@ -1,0 +1,26 @@
+The MST cost is: 74
+The MST edges are:
+0 1 1
+0 2 3
+3 4 4
+5 7 22
+6 7 18
+0 4 5
+3 6 21
+
+The MST cost is: 19
+The MST edges are:
+0 3 5
+0 1 10
+2 3 4
+
+The MST cost is: 37
+The MST edges are:
+0 1 4
+2 8 2
+2 3 7
+3 4 9
+5 6 2
+6 7 1
+0 7 8
+2 5 4

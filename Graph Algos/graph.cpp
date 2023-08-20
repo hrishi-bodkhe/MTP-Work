@@ -6,6 +6,8 @@
 #include "scc.h"
 #include "apsp.h"
 #include "weaklycc.h"
+#include "mst.h"
+#include "mis.h"
 
 int main()
 {
@@ -42,9 +44,9 @@ int main()
     // //print CSR
     // printCSR(index, headvertex, weights);
 
-    vector<ll> dist(vertices, INT_MAX);
-    vector<ll> parent(vertices, -1);
-    vector<Node> property(vertices);
+    // vector<ll> dist(vertices, INT_MAX);
+    // vector<ll> parent(vertices, -1);
+    // vector<Node> property(vertices);
 
     // if(weighted) bfsCSRweighted(0, vertices, index, headvertex, weights, dist, parent);
     // else bfsCSR(0, vertices, index, headvertex, dist, parent);
@@ -56,8 +58,8 @@ int main()
     // vector<ll> component(vertices, -1);
     // findConnComp(0, vertices, index, headvertex, color, component);
 
-    ll ans = scc(vertices, index, headvertex, edgeList, property);
-    cout << ans << endl;
+    // ll ans = scc(vertices, index, headvertex, edgeList, property);
+    // cout << ans << endl;
 
     // vector<vector<ll>> distAPSP(vertices, vector<ll>(vertices, INT_MAX));
     // vector<vector<ll>> parentAPSP(vertices, vector<ll>(vertices, -1));
@@ -70,6 +72,12 @@ int main()
     // ll weaklyConnComp = weaklycc(vertices, edgeList, color, component);
     // cout << weaklyConnComp << endl;
 
+    // vector<Edge> mstEdges;
+    // ll mstCost = BoruvkaMST(vertices, index, headvertex, weights, mstEdges);
+
+    // vector<ll> maxIndependentSet;
+    // MIS(vertices, index, headvertex, maxIndependentSet);
+    
     return 0;
 }
 

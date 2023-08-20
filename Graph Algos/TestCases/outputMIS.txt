@@ -1,0 +1,3 @@
+The MIS contains the following vertices: 0 4 
+
+The MIS contains the following vertices: 0
