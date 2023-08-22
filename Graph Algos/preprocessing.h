@@ -3,6 +3,7 @@
 #include <bits/stdc++.h>
 #include <iostream>
 #define ll long long
+#define ld long double
 using namespace std;
 
 struct Edge

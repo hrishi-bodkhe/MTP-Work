@@ -8,6 +8,7 @@
 #include "weaklycc.h"
 #include "mst.h"
 #include "mis.h"
+#include "pagerank.h"
 
 int main()
 {
@@ -77,6 +78,10 @@ int main()
 
     // vector<ll> maxIndependentSet;
     // MIS(vertices, index, headvertex, maxIndependentSet);
+
+    vector<ld> pageRank(vertices);
+    computePR(vertices, index, headvertex, pageRank);
+    
     
     return 0;
 }
