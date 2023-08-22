@@ -9,6 +9,7 @@
 #include "mst.h"
 #include "mis.h"
 #include "pagerank.h"
+#include "triangleCount.h"
 
 int main()
 {
@@ -79,10 +80,11 @@ int main()
     // vector<ll> maxIndependentSet;
     // MIS(vertices, index, headvertex, maxIndependentSet);
 
-    vector<ld> pageRank(vertices);
-    computePR(vertices, index, headvertex, pageRank);
+    // vector<ld> pageRank(vertices);
+    // computePR(vertices, index, headvertex, pageRank);
     
-    
+    // ll triangles = triangleCount(vertices, index, headvertex);
+    // cout << "Trianlge count is: " << triangles << endl;
     return 0;
 }
 
