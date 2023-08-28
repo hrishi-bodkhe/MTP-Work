@@ -1,0 +1,81 @@
+#include <iostream>
+#include <vector>
+#include <unordered_set>
+
+using namespace std;
+
+class Graph {
+private:
+    int V;
+    vector<unordered_set<int>> adjList;
+
+public:
+    Graph(int vertices) : V(vertices), adjList(vertices) {}
+
+    void addEdge(int u, int v) {
+        adjList[u].insert(v);
+        adjList[v].insert(u);
+    }
+
+    void greedyColoring() {
+        vector<int> result(V, -1); // Initialize all vertices with no color
+
+        // Assign the first color to the first vertex
+        result[0] = 0;
+
+        // Available colors to mark which colors are used by neighboring vertices
+        vector<bool> availableColors(V, true);
+
+        // Assign colors to the remaining vertices
+        for (int u = 1; u < V; ++u) {
+            // Mark colors used by adjacent vertices
+            for (const int& v : adjList[u]) {
+                if (result[v] != -1) {
+                    availableColors[result[v]] = false;
+                }
+            }
+
+            // Find the first available color
+            int color;
+            for (color = 0; color < V; ++color) {
+                if (availableColors[color]) {
+                    break;
+                }
+            }
+
+            // Assign the found color to the current vertex
+            result[u] = color;
+
+            // Reset available colors for the next iteration
+            fill(availableColors.begin(), availableColors.end(), true);
+        }
+
+        // Print the vertex-color assignments
+        cout << "Vertex\tColor" << endl;
+        for (int i = 0; i < V; ++i) {
+            cout << i << "\t" << result[i] << endl;
+        }
+    }
+};
+
+int main() {
+    int V, E;
+    cout << "Enter the number of vertices: ";
+    cin >> V;
+    cout << "Enter the number of edges: ";
+    cin >> E;
+
+    Graph graph(V);
+
+    cout << "Enter the edges:" << endl;
+    for (int i = 0; i < E; ++i) {
+        int u, v;
+        cin >> u >> v;
+        graph.addEdge(u, v);
+    }
+
+    cout << "Coloring using greedy algorithm:" << endl;
+    graph.greedyColoring();
+
+    return 0;
+}

@@ -10,6 +10,7 @@
 #include "mis.h"
 #include "pagerank.h"
 #include "triangleCount.h"
+#include "graphColor.h"
 
 int main()
 {
@@ -85,6 +86,12 @@ int main()
     
     // ll triangles = triangleCount(vertices, index, headvertex);
     // cout << "Trianlge count is: " << triangles << endl;
+
+    // vector<ll> colors(vertices, 0);
+    // graphColoring(vertices, index, headvertex, colors);
+
+    
+
     return 0;
 }
 

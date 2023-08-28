@@ -1,6 +1,6 @@
 CXX = g++
 
-SOURCES = preprocessing.h bfs.h dfs.h apsp.h connectedComp.h scc.h sssp.h weaklycc.h mst.h mis.h pagerank.h triangleCount.h bfs.cpp dfs.cpp graph.cpp apsp.cpp connectedComp.cpp scc.cpp sssp.cpp weaklycc.cpp mst.cpp mis.cpp pagerank.cpp triangleCount.cpp
+SOURCES = preprocessing.h bfs.h dfs.h apsp.h connectedComp.h scc.h sssp.h weaklycc.h mst.h mis.h pagerank.h triangleCount.h graphColor.h bfs.cpp dfs.cpp graph.cpp apsp.cpp connectedComp.cpp scc.cpp sssp.cpp weaklycc.cpp mst.cpp mis.cpp pagerank.cpp triangleCount.cpp graphColor.cpp
 
 EXECUTABLE = output
 
