@@ -11,6 +11,7 @@
 #include "pagerank.h"
 #include "triangleCount.h"
 #include "graphColor.h"
+#include "kcore.h"
 
 int main()
 {
@@ -89,6 +90,9 @@ int main()
 
     // vector<ll> colors(vertices, 0);
     // graphColoring(vertices, index, headvertex, colors);
+
+    // ll k = 3;
+    // kCore(vertices, index, headvertex, k);
 
     
 
