@@ -12,6 +12,7 @@
 #include "triangleCount.h"
 #include "graphColor.h"
 #include "kcore.h"
+#include "betweennessCentrality.h"
 
 int main()
 {
@@ -94,7 +95,7 @@ int main()
     // ll k = 3;
     // kCore(vertices, index, headvertex, k);
 
-    
+    // vertexBetweennessCentrality(vertices, index, headvertex);
 
     return 0;
 }
