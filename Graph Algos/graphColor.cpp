@@ -15,7 +15,7 @@ void assignColor(ll k, vector<ll>& index, vector<ll>& headVertex, vector<ll>& co
 
     for(ll i = 0; i < k; ++i){
         if(isNeighbour(k, i, index, headVertex) && colors[k] == colors[i])
-            colors[k] = colors[k] + 1;
+            colors[k] = colors[i] + 1;
     }
 }
 
