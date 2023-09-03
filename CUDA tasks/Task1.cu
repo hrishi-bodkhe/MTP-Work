@@ -194,13 +194,14 @@ int main()
     vector<ll> index(vertices + 1, 0);
     vector<ll> headvertex;
     vector<ll> weights;
-
+    
     constructCSR(vertices, index, headvertex, weights, directed, weighted, edgeList);
+    ll noOfedges = headvertex.size();
 
-    ll hindex[vertices + 1];
-    ll hheadVertex[headvertex.size()];
-    ll hweights[weights.size()];
-
+    ll* hindex = (ll*) malloc((vertices + 1) * sizeof(ll));
+    ll* hheadVertex = (ll*) malloc(noOfedges * sizeof(ll));
+    ll* hweights = (ll*) malloc(noOfedges * sizeof(ll));
+    
     for (ll i = 0; i < vertices + 1; ++i)
     {
         hindex[i] = index[i];
@@ -210,7 +211,7 @@ int main()
         hheadVertex[i] = headvertex[i];
         hweights[i] = weights[i];
     }
-    ll noOfedges = headvertex.size();
+    
 
     // Copying CSR on GPU
     ll *dindex;
@@ -257,7 +258,7 @@ int main()
     end = clock();
     double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
 
-    printAdjListKernel<<<1,1>>>(vertices, dadjList);
+    // printAdjListKernel<<<1,1>>>(vertices, dadjList);
     cudaDeviceSynchronize();
 
     cout << "Time taken is: " << elapsedTime << " ms" << endl;
