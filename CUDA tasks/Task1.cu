@@ -79,7 +79,7 @@ __global__ void printAdjListKernel(ll vertices, Node **adjList){
     }
 }
 
-__global__ void generateAdjListParallel(ll vertices, ll *index, ll *headVertex, ll *weights, Node **nodequeue, Node **adjList)
+__global__ void generateAdjListParallel(ll vertices, ll *index, ll *headVertex, ll *weights, Node *nodequeue, Node **adjList)
 {
     unsigned int u = blockIdx.x * blockDim.x +  threadIdx.x;
 
@@ -95,8 +95,12 @@ __global__ void generateAdjListParallel(ll vertices, ll *index, ll *headVertex, 
     {
         ll v = headVertex[idx];
         ll wt = weights[idx];
+        
 
-        Node *node = nodequeue[idx];
+        Node *node = nodequeue + idx;
+        // printf("%p\n", node);
+        // if(node == NULL) printf("ye");
+        // else printf("no");
 
         // if(node == NULL) printf("%ld ",qIndex);
         // else printf("no ");
@@ -104,8 +108,10 @@ __global__ void generateAdjListParallel(ll vertices, ll *index, ll *headVertex, 
         node->vertex = v;
         node->wt = wt;
         node->next = NULL;
-
+        
         Node *temp = adjList[u];
+        // printf("%ld ", node->vertex);
+        
 
         if (!temp)
             adjList[u] = node;
@@ -115,52 +121,59 @@ __global__ void generateAdjListParallel(ll vertices, ll *index, ll *headVertex, 
             adjList[u] = node;
         }
     }
-
-    
 }
 
-__global__ void generateAdjList(ll vertices, ll *index, ll *headVertex, ll *weights, Node **nodequeue, Node **adjList, ll edges)
+__global__ void generateAdjList(ll vertices, ll *index, ll *headVertex, ll *weights, Node *nodequeue, Node **adjList, ll edges)
 {
-    for (ll i = 0; i < vertices; ++i)
-    {
-        adjList[i] = NULL;
-    }
-    ll qIndex = 0;
-
     for (ll u = 0; u < vertices; ++u)
     {
+        // printf("%ld, ", u);
         ll startIdx = index[u];
         ll endIdx = index[u + 1];
+        // if(u == 18){
+        //     printf("%ld ", startIdx);
+        //     printf("%ld ", endIdx);
+        // }
 
         for (ll idx = startIdx; idx < endIdx; ++idx)
         {
-            ll v = headVertex[idx];
-            ll wt = weights[idx];
+            // if(u == 18) printf("%ld, ", u);
+            ll v = *(headVertex + idx);
+            ll wt = *(weights + idx);
+            // if(u == 18) printf("%ld, ", v);
             // printf("%ld ", qIndex);
-            Node *node = nodequeue[qIndex];
-            ++qIndex;
+            Node *node = nodequeue + idx;
+            // if(node == NULL) printf("yo");
 
             // if(node == NULL) printf("%ld ",qIndex);
             // else printf("no ");
 
             node->vertex = v;
             node->wt = wt;
-            node->next = NULL;
-
+            
             Node *temp = adjList[u];
-
-            if (!temp)
+            
+            if (!temp){
                 adjList[u] = node;
+                
+            }
             else
             {
-                node->next = temp;
-                adjList[u] = node;
+                while(temp->next) temp = temp->next;
+                temp->next = node;
+                node->next = NULL;
+                
+                // printf("%ld ", temp->vertex);
             }
             // printf("%d ", qIndex);
-
             // qIndex = qIndex + 1;
         }
     }
+    
+}
+
+__global__ void printNodeQueue(ll edges, Node* nodequeue){
+    for(int i = 0; i < edges; ++i) printf("%p\n", nodequeue + i);
 }
 
 __global__ void allocate(ll i, Node **nodequeue, Node *node)
@@ -196,7 +209,7 @@ int main()
     vector<ll> weights;
     
     constructCSR(vertices, index, headvertex, weights, directed, weighted, edgeList);
-    ll noOfedges = headvertex.size();
+    ll noOfedges = edgeList.size();
 
     ll* hindex = (ll*) malloc((vertices + 1) * sizeof(ll));
     ll* hheadVertex = (ll*) malloc(noOfedges * sizeof(ll));
@@ -227,26 +240,30 @@ int main()
     cudaMemcpy(dweights, hweights, (ll)weights.size() * sizeof(ll), cudaMemcpyHostToDevice);
 
     // Creating Edge queue
-    Node **nodeQueue;
-    cudaMalloc(&nodeQueue, noOfedges * sizeof(Node *));
-    for (ll i = 0; i < noOfedges; ++i)
-    {
-        Node *node;
-        cudaMalloc(&node, sizeof(Node));
-        allocate<<<1, 1>>>(i, nodeQueue, node);
-    }
+    Node *nodeQueue;
+    // cudaMalloc(&nodeQueue, noOfedges * sizeof(Node *));
+    cudaMalloc((Node**)&nodeQueue, noOfedges * sizeof(Node));
+    // for (ll i = 0; i < noOfedges; ++i)
+    // {
+    //     Node *node;
+    //     cudaMalloc(&node, sizeof(Node));
+    //     allocate<<<1, 1>>>(i, nodeQueue, node);
+    // }
+
+    // printNodeQueue<<<1, 1>>>(noOfedges, nodeQueue);
+    // cudaDeviceSynchronize();
 
     Node **dadjList;
     cudaMalloc(&dadjList, index.size() * sizeof(Node *));
 
-    /*// Main 1
-    clock_t start, end;
-    start = clock();
-    generateAdjList<<<1, 1>>>(vertices, dindex, dheadVertex, dweights, nodeQueue, dadjList, noOfedges);
-    cudaDeviceSynchronize();
-    end = clock();
-    double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
-    */
+    // Main 1
+    // clock_t start, end;
+    // start = clock();
+    // generateAdjList<<<1, 1>>>(vertices, dindex, dheadVertex, dweights, nodeQueue, dadjList, noOfedges);
+    // cudaDeviceSynchronize();
+    // end = clock();
+    // double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+    
 
     // Optional Task
     unsigned nblocks = ceil((float) vertices / BLOCKSIZE);
