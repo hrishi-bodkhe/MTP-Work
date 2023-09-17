@@ -84,3 +84,16 @@ void printEdgeList(vector<Edge> &edgeList)
     for (Edge e : edgeList)
         cout << e.src << ' ' << e.dest << ' ' << e.wt << endl;
 }
+
+ll nearestPowerOf2(ll value) {
+    if (value <= 0) {
+        return 1;
+    }
+
+    ll exponent = round(log2(value));
+    return pow(2, exponent);
+}
+
+void printTimings(vector<double>& timings){
+    for(double i: timings) cout << i << endl;
+}

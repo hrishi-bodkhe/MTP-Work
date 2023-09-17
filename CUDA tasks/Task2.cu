@@ -45,6 +45,24 @@ __global__ void generateAdjListParallel(ll vertices, ll *index, ll *headVertex, 
     }
 }
 
+__global__ void copyAdjacencyList(Node **oldList, Node **newList, ll oldSize)
+{
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (id > oldSize)
+        return;
+
+    Node *node = oldList[id];
+
+    newList[id] = node;
+}
+
+__global__ void updateOldToNew(Node **deviceAdjList, Node **newdeviceAdjList, Node **temp)
+{
+    temp = deviceAdjList;
+    deviceAdjList = newdeviceAdjList;
+}
+
 __global__ void printAdjListKernel(ll vertices, Node **adjList)
 {
     printf("---------------------------------STARTED PRINTING--------------------------------------\n");
@@ -74,14 +92,14 @@ int main()
     cin >> sortedOption;
     // cout << sortedOption << endl;
 
-    string file1 = "inf-luxembourg_osm.mtx";
-    string file2 = "chesapeake.mtx";
-    string file3 = "delaunay_n17.mtx";
-    string file4 = "kron_g500-logn16.mtx";
-    string file5 = "rgg_n_2_16_s0.mtx";
-    string file6 = "kron_g500-logn21.mtx";
+    string file1 = "Graphs/chesapeake.mtx";
+    string file2 = "Graphs/inf-luxembourg_osm.mtx";
+    string file3 = "Graphs/delaunay_n17.mtx";
+    string file4 = "Graphs/kron_g500-logn16.mtx";
+    string file5 = "Graphs/rgg_n_2_16_s0.mtx";
 
-    string mtxFilePath = file1;
+    string mtxFilePath = file5;
+    double totalTime = 0.0;
 
     ifstream file(mtxFilePath);
 
@@ -95,7 +113,7 @@ int main()
     ll temp1, totalEdges; // for skipping the first line vertices, edges
     vector<Edge> edgeList;
     string line;
-    ll batchSize = 10;
+    ll batchSize = 100000;
     bool skipLineOne = true;
     ll prevEdgeCount = 0;
 
@@ -108,6 +126,10 @@ int main()
 
     // Defining deviceAdjList;
     Node **deviceAdjList;
+    ll sizeOfAdjList = 0;
+
+    int batch = 1;
+    vector<double> timings;
 
     while (getline(file, line))
     {
@@ -204,6 +226,34 @@ int main()
             cudaMemcpy(dheadVertex, hheadVertex, (ll)(noOfedges) * sizeof(ll), cudaMemcpyHostToDevice);
             cudaMemcpy(dweights, hweights, (ll)(noOfedges) * sizeof(ll), cudaMemcpyHostToDevice);
 
+            /* Vertex Updates
+            ll maxSizeNeeded = nearestPowerOf2(maxVertex);
+            cout << maxSizeNeeded << endl;
+
+            if (sizeOfAdjList == 0)
+            {
+                cudaMalloc(&deviceAdjList, maxSizeNeeded * sizeof(Node *));
+                sizeOfAdjList = maxSizeNeeded;
+            }
+            else if (maxVertex > sizeOfAdjList)
+            {
+                Node **newdeviceAdjList;
+                cudaMalloc(&newdeviceAdjList, maxSizeNeeded * sizeof(Node *));
+
+                // copy old adjacency to new
+                unsigned blocks = ceil((float)sizeOfAdjList / BLOCKSIZE);
+                copyAdjacencyList<<<blocks, BLOCKSIZE>>>(deviceAdjList, newdeviceAdjList, sizeOfAdjList);
+                cudaDeviceSynchronize();
+                cout << "here1" << endl;
+                sizeOfAdjList = maxSizeNeeded;
+                Node **temp;
+                updateOldToNew<<<1, 1>>>(deviceAdjList, newdeviceAdjList, temp);
+                // printAdjListKernel<<<1, 1>>>(totalVertices, deviceAdjList);
+                // cudaDeviceSynchronize();
+                cudaFree(temp);
+            }
+            */
+
             unsigned nblocks = ceil((float)vertices / BLOCKSIZE);
             // cout << nblocks <<endl; break;
 
@@ -213,13 +263,18 @@ int main()
             cudaDeviceSynchronize();
             end = clock();
             double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+            totalTime += elapsedTime;
+
+            timings.emplace_back(elapsedTime);
 
             // printAdjListKernel<<<1, 1>>>(totalVertices, deviceAdjList);
             // cudaDeviceSynchronize();
             // ++count;
             // if(count == 3) break;
 
-            // cout << "Time taken is: " << elapsedTime << " ms" << endl;
+            // cout << "Time taken for Batch " << batch << ": " << elapsedTime << " ms" << endl;
+
+            ++batch;
             prevEdgeCount += noOfedges;
             edgeList.clear();
             vertexCount.clear();
@@ -268,6 +323,34 @@ int main()
         cudaMemcpy(dheadVertex, hheadVertex, (ll)(noOfedges) * sizeof(ll), cudaMemcpyHostToDevice);
         cudaMemcpy(dweights, hweights, (ll)(noOfedges) * sizeof(ll), cudaMemcpyHostToDevice);
 
+        /* Vertex Updates
+        ll maxSizeNeeded = nearestPowerOf2(maxVertex);
+        cout << maxSizeNeeded << endl;
+
+        if (sizeOfAdjList == 0)
+        {
+            cudaMalloc(&deviceAdjList, maxSizeNeeded * sizeof(Node *));
+            sizeOfAdjList = maxSizeNeeded;
+        }
+        else if (maxVertex > sizeOfAdjList)
+        {
+            Node **newdeviceAdjList;
+            cudaMalloc(&newdeviceAdjList, maxSizeNeeded * sizeof(Node *));
+
+            // copy old adjacency to new
+            unsigned blocks = ceil((float)sizeOfAdjList / BLOCKSIZE);
+            copyAdjacencyList<<<blocks, BLOCKSIZE>>>(deviceAdjList, newdeviceAdjList, sizeOfAdjList);
+            cudaDeviceSynchronize();
+            cout << "here2" << endl;
+            sizeOfAdjList = maxSizeNeeded;
+            Node **temp;
+            updateOldToNew<<<1, 1>>>(deviceAdjList, newdeviceAdjList, temp);
+            // printAdjListKernel<<<1,1>>>(totalVertices, deviceAdjList);
+            // cudaDeviceSynchronize();
+            cudaFree(temp);
+        }
+        */
+
         unsigned nblocks = ceil((float)vertices / BLOCKSIZE);
 
         clock_t start, end;
@@ -276,10 +359,13 @@ int main()
         cudaDeviceSynchronize();
         end = clock();
         double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+        totalTime += elapsedTime;
+        timings.emplace_back(elapsedTime);
         // printAdjListKernel<<<1,1>>>(totalVertices, deviceAdjList);
-        cudaDeviceSynchronize();
+        // cudaDeviceSynchronize();
 
-        // cout << "Time taken is: " << elapsedTime << " ms" << endl;
+        // cout << "Time taken for Batch " << batch << ": " << elapsedTime << " ms" << endl;
+
         edgeList.clear();
         vertexCount.clear();
         cudaFree(dvertexToIndexMap);
@@ -294,7 +380,14 @@ int main()
 
     file.close();
 
-    printAdjListKernel<<<1,1>>>(totalVertices, deviceAdjList);
+    // printAdjListKernel<<<1, 1>>>(totalVertices, deviceAdjList);
     cudaDeviceSynchronize();
+
+    printTimings(timings);
+
+    double avgTime = (double) totalTime / batch;
+    cout << "Total Time is: " << totalTime << endl;
+    cout << "Average Time is: " << avgTime << endl;
+
     return 0;
 }

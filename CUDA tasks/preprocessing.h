@@ -38,4 +38,8 @@ void printCSR(ll &vertices, ll *index, ll *headvertex, ll *weights, ll &edges, l
 
 void printEdgeList(vector<Edge> &edgeList);
 
+ll nearestPowerOf2(ll value);
+
+void printTimings(vector<double>& timings);
+
 #endif
