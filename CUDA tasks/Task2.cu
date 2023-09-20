@@ -98,7 +98,7 @@ int main()
     string file4 = "Graphs/kron_g500-logn16.mtx";
     string file5 = "Graphs/rgg_n_2_16_s0.mtx";
 
-    string mtxFilePath = file2;
+    string mtxFilePath = file1;
     double totalTime = 0.0;
 
     ifstream file(mtxFilePath);
@@ -113,7 +113,7 @@ int main()
     ll temp1, totalEdges; // for skipping the first line vertices, edges
     vector<Edge> edgeList;
     string line;
-    ll batchSize = 10000;
+    ll batchSize = 100000;
     bool skipLineOne = true;
     ll prevEdgeCount = 0;
 
@@ -150,7 +150,7 @@ int main()
             cudaMalloc((Node **)&nodeQueue, totalEdges * sizeof(Node));
 
             // Allocating space for adjacency list on device
-            cudaMalloc(&deviceAdjList, totalVertices * sizeof(Node *));
+            // cudaMalloc(&deviceAdjList, totalVertices * sizeof(Node *));
             continue;
         }
 
@@ -237,6 +237,8 @@ int main()
             }
             else if (maxVertex > sizeOfAdjList)
             {
+                clock_t start, end;
+                start = clock();
                 Node **newdeviceAdjList;
                 cudaMalloc(&newdeviceAdjList, maxSizeNeeded * sizeof(Node *));
 
@@ -249,8 +251,11 @@ int main()
                 Node **temp;
                 updateOldToNew<<<1, 1>>>(deviceAdjList, newdeviceAdjList, temp);
                 // printAdjListKernel<<<1, 1>>>(sizeOfAdjList, deviceAdjList);
-                // cudaDeviceSynchronize();
+                cudaDeviceSynchronize();
                 cudaFree(temp);
+                end = clock();
+                double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+                totalTime += elapsedTime;
             }
             // */
 
@@ -330,11 +335,18 @@ int main()
 
         if (sizeOfAdjList == 0)
         {
+            clock_t start, end;
+            start = clock();
             cudaMalloc(&deviceAdjList, maxSizeNeeded * sizeof(Node *));
             sizeOfAdjList = maxSizeNeeded;
+            end = clock();
+            double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+            totalTime += elapsedTime;
         }
         else if (maxVertex > sizeOfAdjList)
         {
+            clock_t start, end;
+            start = clock();
             Node **newdeviceAdjList;
             cudaMalloc(&newdeviceAdjList, maxSizeNeeded * sizeof(Node *));
 
@@ -349,6 +361,9 @@ int main()
             // printAdjListKernel<<<1,1>>>(sizeOfAdjList, deviceAdjList);
             // cudaDeviceSynchronize();
             cudaFree(temp);
+            end = clock();
+            double elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+            totalTime += elapsedTime;
         }
         // */
 
@@ -386,7 +401,7 @@ int main()
 
     printTimings(timings);
 
-    double avgTime = (double) totalTime / batch;
+    double avgTime = (double)totalTime / batch;
     cout << "Total Time is: " << totalTime << endl;
     cout << "Average Time is: " << avgTime << endl;
 
