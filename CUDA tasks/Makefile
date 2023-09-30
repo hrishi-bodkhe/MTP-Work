@@ -4,7 +4,7 @@
 CXX = nvcc
 
 # Source files
-SOURCES = preprocessing.cpp Task2.cu
+SOURCES = preprocessing.cpp Task3.cu
 
 # Header files
 HEADERS = preprocessing.h

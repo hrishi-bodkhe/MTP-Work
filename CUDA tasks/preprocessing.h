@@ -5,7 +5,7 @@
 #define ll long long
 #define ld long double
 #define BLOCKSIZE 1024
-#define WEIGHTED 0
+#define WEIGHTED 1
 #define DIRECTED 0
 using namespace std;
 
