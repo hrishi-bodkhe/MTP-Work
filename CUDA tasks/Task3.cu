@@ -84,6 +84,38 @@ __global__ void printAdjListKernel(ll vertices, Node **adjList)
     }
 }
 
+__global__ void batchDeletion(ll vertices, ll *index, ll *headVertex, ll *weights, Node **adjList, ll *vertexToIndexMap)
+{
+    unsigned int u = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (u >= vertices)
+        return;
+
+    ll u_data = vertexToIndexMap[u];
+
+    ll startIdx = index[u];
+    ll endIdx = index[u + 1];
+
+    for (ll idx = startIdx; idx < endIdx; ++idx)
+    {
+        ll v = headVertex[idx];
+        ll wt = weights[idx];
+
+        Node *temp = adjList[u_data];
+
+        while (temp)
+        {
+            if (temp->vertex == v && temp->wt == wt)
+            {
+                temp->vertex = -1;
+                temp->wt = -1;
+                break;
+            }
+            temp = temp->next;
+        }
+    }
+}
+
 int main()
 {
     int count = 0;
@@ -98,8 +130,9 @@ int main()
     string file4 = "Graphs/kron_g500-logn16.mtx";
     string file5 = "Graphs/rgg_n_2_16_s0.mtx";
 
-    string mtxFilePath = file3;
+    string mtxFilePath = file5;
     double totalTime = 0.0;
+    double totalDeletionTime = 0.0;
 
     ifstream file(mtxFilePath);
 
@@ -113,7 +146,7 @@ int main()
     ll temp1, totalEdges; // for skipping the first line vertices, edges
     vector<Edge> edgeList;
     string line;
-    ll batchSize = 10000;
+    ll batchSize = INT_MAX;
     bool skipLineOne = true;
     ll prevEdgeCount = 0;
 
@@ -272,6 +305,31 @@ int main()
 
             timings.emplace_back(elapsedTime);
 
+            // BATCH DELETION==========================================================================================================================================================================================
+            
+            clock_t startD, endD;
+            startD = clock();
+            batchDeletion<<<nblocks, BLOCKSIZE>>>(vertices, dindex, dheadVertex, dweights, deviceAdjList, dvertexToIndexMap);
+            cudaDeviceSynchronize();
+            endD = clock();
+            double elapsedTimeD = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+            cout << elapsedTimeD << ' ';
+            totalDeletionTime += elapsedTimeD;
+            
+            
+            // //EDGE CENTRIC BATCH DELETION
+            // ll edges = edgeList.size();
+            // unsigned nblocks1 = ceil((float) edges / BLOCKSIZE);
+
+            // clock_t startD, endD;
+            // startD = clock();
+            // edgeCentricBatchDeletion<<<nblocks1, BLOCKSIZE>>>(edges, dindex, dheadVertex, dweights, deviceAdjList, dvertexToIndexMap);
+            // cudaDeviceSynchronize();
+            // endD = clock();
+            // double elapsedTimeD = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+            // cout << elapsedTimeD << ' ';
+            // totalDeletionTime += elapsedTimeD;
+
             // printAdjListKernel<<<1, 1>>>(vertices, deviceAdjList);
             // cudaDeviceSynchronize();
             // ++count;
@@ -382,6 +440,17 @@ int main()
 
         // cout << "Time taken for Batch " << batch << ": " << elapsedTime << " ms" << endl;
 
+        // BATCH DELETION==========================================================================================================================================================================================
+
+        clock_t startD, endD;
+        startD = clock();
+        batchDeletion<<<nblocks, BLOCKSIZE>>>(vertices, dindex, dheadVertex, dweights, deviceAdjList, dvertexToIndexMap);
+        cudaDeviceSynchronize();
+        endD = clock();
+        double elapsedTimeD = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+        cout << elapsedTimeD << ' ';
+        totalDeletionTime += elapsedTimeD;
+
         edgeList.clear();
         vertexCount.clear();
         cudaFree(dvertexToIndexMap);
@@ -396,14 +465,18 @@ int main()
 
     file.close();
 
-    // printAdjListKernel<<<1, 1>>>(totalVertices, deviceAdjList);
-    // cudaDeviceSynchronize();
+    printAdjListKernel<<<1, 1>>>(totalVertices, deviceAdjList);
+    cudaDeviceSynchronize();
 
-    printTimings(timings);
+    // printTimings(timings);
 
     double avgTime = (double)totalTime / batch;
-    cout << "Total Time is: " << totalTime << endl;
-    cout << "Average Time is: " << avgTime << endl;
+    // cout << "Total Time is: " << totalTime << endl;
+    // cout << "Average Time is: " << avgTime << endl;
 
+    cout << endl;
+    cout << "Total Time for Deletion is: " << totalDeletionTime << endl;
+    double avgDeleteTime = (double) totalDeletionTime / batch;
+    cout << "Average Time for Deletion is: " << avgDeleteTime << endl;
     return 0;
 }
