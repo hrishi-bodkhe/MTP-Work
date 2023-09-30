@@ -396,8 +396,8 @@ int main()
 
     file.close();
 
-    // printAdjListKernel<<<1, 1>>>(totalVertices, deviceAdjList);
-    // cudaDeviceSynchronize();
+    printAdjListKernel<<<1, 1>>>(totalVertices, deviceAdjList);
+    cudaDeviceSynchronize();
 
     printTimings(timings);
 
