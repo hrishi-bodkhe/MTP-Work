@@ -116,6 +116,29 @@ __global__ void batchDeletion(ll vertices, ll *index, ll *headVertex, ll *weight
     }
 }
 
+__global__ void edgeCentricBatchDeletion(ll edges, Edge* dedgeList, Node **adjList){
+    unsigned int e = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(e >= edges) return;
+
+    Edge edge = dedgeList[e];
+
+    ll u = edge.src;
+    ll v = edge.dest;
+    ll wt = edge.wt;
+
+    Node* temp = adjList[u];
+    while(temp){
+        if(temp->vertex == v && temp->wt == wt){
+            temp->vertex = -1;
+            temp->wt = -1;
+            break;
+        }
+
+        temp = temp->next;
+    }
+}
+
 int main()
 {
     int count = 0;
@@ -130,9 +153,10 @@ int main()
     string file4 = "Graphs/kron_g500-logn16.mtx";
     string file5 = "Graphs/rgg_n_2_16_s0.mtx";
 
-    string mtxFilePath = file5;
+    string mtxFilePath = file1;
     double totalTime = 0.0;
     double totalDeletionTime = 0.0;
+    double totalDeletionTimeD1 = 0.0;
 
     ifstream file(mtxFilePath);
 
@@ -146,7 +170,7 @@ int main()
     ll temp1, totalEdges; // for skipping the first line vertices, edges
     vector<Edge> edgeList;
     string line;
-    ll batchSize = INT_MAX;
+    ll batchSize = 10000;
     bool skipLineOne = true;
     ll prevEdgeCount = 0;
 
@@ -305,30 +329,43 @@ int main()
 
             timings.emplace_back(elapsedTime);
 
+            // Convert vector edgelist to array================================================
+            ll sz = edgeList.size();
+            Edge *hedgeList = (Edge *)malloc((sz) * sizeof(Edge));
+            for (ll k = 0; k < sz; ++k)
+            {
+                hedgeList[k] = edgeList[k];
+            }
+
+            Edge *dedgeList;
+            cudaMalloc(&dedgeList, sz * sizeof(Edge));
+            cudaMemcpy(dedgeList, hedgeList, sz * sizeof(Edge), cudaMemcpyHostToDevice);
+
+            /*
             // BATCH DELETION==========================================================================================================================================================================================
-            
+
             clock_t startD, endD;
             startD = clock();
             batchDeletion<<<nblocks, BLOCKSIZE>>>(vertices, dindex, dheadVertex, dweights, deviceAdjList, dvertexToIndexMap);
             cudaDeviceSynchronize();
             endD = clock();
-            double elapsedTimeD = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+            double elapsedTimeD = (double)(endD - startD) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
             cout << elapsedTimeD << ' ';
             totalDeletionTime += elapsedTimeD;
-            
-            
-            // //EDGE CENTRIC BATCH DELETION
-            // ll edges = edgeList.size();
-            // unsigned nblocks1 = ceil((float) edges / BLOCKSIZE);
+            */
 
-            // clock_t startD, endD;
-            // startD = clock();
-            // edgeCentricBatchDeletion<<<nblocks1, BLOCKSIZE>>>(edges, dindex, dheadVertex, dweights, deviceAdjList, dvertexToIndexMap);
-            // cudaDeviceSynchronize();
-            // endD = clock();
-            // double elapsedTimeD = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
-            // cout << elapsedTimeD << ' ';
-            // totalDeletionTime += elapsedTimeD;
+            //EDGE CENTRIC BATCH DELETION
+            ll edges = edgeList.size();
+            unsigned nblocks1 = ceil((float) edges / BLOCKSIZE);
+
+            clock_t startD1, endD1;
+            startD1 = clock();
+            edgeCentricBatchDeletion<<<nblocks1, BLOCKSIZE>>>(edges, dedgeList, deviceAdjList);
+            cudaDeviceSynchronize();
+            endD1 = clock();
+            double elapsedTimeD1 = (double)(endD1 - startD1) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+            cout << elapsedTimeD1 << ' ';
+            totalDeletionTimeD1 += elapsedTimeD1;
 
             // printAdjListKernel<<<1, 1>>>(vertices, deviceAdjList);
             // cudaDeviceSynchronize();
@@ -345,10 +382,12 @@ int main()
             cudaFree(dindex);
             cudaFree(dheadVertex);
             cudaFree(dweights);
+            cudaFree(dedgeList);
             free(hvertexToIndexMap);
             free(hindex);
             free(hheadVertex);
             free(hweights);
+            free(hedgeList);
             maxVertex = 0;
         }
     }
@@ -440,6 +479,7 @@ int main()
 
         // cout << "Time taken for Batch " << batch << ": " << elapsedTime << " ms" << endl;
 
+        /*
         // BATCH DELETION==========================================================================================================================================================================================
 
         clock_t startD, endD;
@@ -447,9 +487,35 @@ int main()
         batchDeletion<<<nblocks, BLOCKSIZE>>>(vertices, dindex, dheadVertex, dweights, deviceAdjList, dvertexToIndexMap);
         cudaDeviceSynchronize();
         endD = clock();
-        double elapsedTimeD = (double)(end - start) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+        double elapsedTimeD = (double)(endD - startD) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
         cout << elapsedTimeD << ' ';
         totalDeletionTime += elapsedTimeD;
+        */
+        
+        // Convert vector edgelist to array================================================
+        ll sz = edgeList.size();
+        Edge *hedgeList = (Edge *)malloc((sz) * sizeof(Edge));
+        for (ll k = 0; k < sz; ++k)
+        {
+            hedgeList[k] = edgeList[k];
+        }
+
+        Edge *dedgeList;
+        cudaMalloc(&dedgeList, sz * sizeof(Edge));
+        cudaMemcpy(dedgeList, hedgeList, sz * sizeof(Edge), cudaMemcpyHostToDevice);
+
+        // EDGE CENTRIC BATCH DELETION
+        ll edges = edgeList.size();
+        unsigned nblocks1 = ceil((float) edges / BLOCKSIZE);
+
+        clock_t startD1, endD1;
+        startD1 = clock();
+        edgeCentricBatchDeletion<<<nblocks1, BLOCKSIZE>>>(edges, dedgeList, deviceAdjList);
+        cudaDeviceSynchronize();
+        endD1 = clock();
+        double elapsedTimeD1 = (double)(endD1 - startD1) / CLOCKS_PER_SEC * 1000.0; // Convert to milliseconds
+        cout << elapsedTimeD1 << ' ';
+        totalDeletionTimeD1 += elapsedTimeD1;
 
         edgeList.clear();
         vertexCount.clear();
@@ -457,10 +523,12 @@ int main()
         cudaFree(dindex);
         cudaFree(dheadVertex);
         cudaFree(dweights);
+        cudaFree(dedgeList);
         free(hvertexToIndexMap);
         free(hindex);
         free(hheadVertex);
         free(hweights);
+        free(hedgeList);
     }
 
     file.close();
@@ -474,9 +542,14 @@ int main()
     // cout << "Total Time is: " << totalTime << endl;
     // cout << "Average Time is: " << avgTime << endl;
 
+    // cout << endl;
+    // cout << "Total Time for Vertex Centric Deletion is: " << totalDeletionTime << endl;
+    // double avgDeleteTime = (double)totalDeletionTime / batch;
+    // cout << "Average Time for vertex Centric Deletion is: " << avgDeleteTime << endl;
+
     cout << endl;
-    cout << "Total Time for Deletion is: " << totalDeletionTime << endl;
-    double avgDeleteTime = (double) totalDeletionTime / batch;
-    cout << "Average Time for Deletion is: " << avgDeleteTime << endl;
+    cout << "Total Time for Edge Centric Deletion is: " << totalDeletionTimeD1 << endl;
+    double avgDeleteTimeD1 = (double)totalDeletionTimeD1 / batch;
+    cout << "Average Time for Edge Centric Deletion is: " << avgDeleteTimeD1 << endl;
     return 0;
 }
