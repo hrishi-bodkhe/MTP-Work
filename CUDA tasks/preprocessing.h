@@ -7,6 +7,8 @@
 #define BLOCKSIZE 1024
 #define WEIGHTED 0
 #define DIRECTED 0
+#define MAX_ITRS 10
+#define dampingFactor 0.85
 using namespace std;
 
 struct Edge
@@ -41,5 +43,7 @@ void printEdgeList(vector<Edge> &edgeList);
 ll nearestPowerOf2(ll value);
 
 void printTimings(vector<double>& timings);
+
+void computePagerank(ll totalVertices, ll *doutdegrees, Node **adjList);
 
 #endif
