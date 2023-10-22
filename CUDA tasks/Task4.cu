@@ -199,7 +199,7 @@ int main()
     string file4 = "Graphs/kron_g500-logn16.mtx";
     string file5 = "Graphs/rgg_n_2_16_s0.mtx";
 
-    string mtxFilePath = file3;
+    string mtxFilePath = file4;
     double totalTime = 0.0;
 
     ifstream file(mtxFilePath);
@@ -521,12 +521,19 @@ int main()
 }
 
 void computePagerank(ll totalVertices, ll *doutdegrees, Node **adjList)
-{
+{   
+    double time = 0;
+    double elapsedTime = 0;
     unsigned blocks = ceil((float)totalVertices / BLOCKSIZE);
 
     double *prevPageRanks;
     cudaMalloc(&prevPageRanks, (double)totalVertices * sizeof(double));
+    clock_t start, end;
+    start = clock();
     pagerankInit<<<blocks, BLOCKSIZE>>>(totalVertices, prevPageRanks);
+    end = clock();
+    elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
+    time += elapsedTime;
     // printPageranks<<<1, 1>>>(totalVertices, prevPageRanks);
     // cudaDeviceSynchronize();
 
@@ -535,6 +542,7 @@ void computePagerank(ll totalVertices, ll *doutdegrees, Node **adjList)
 
     int last = 0;
 
+    start = clock();
     for (ll itr = 0; itr < MAX_ITRS; ++itr)
     {
         if (itr & 1)
@@ -550,10 +558,14 @@ void computePagerank(ll totalVertices, ll *doutdegrees, Node **adjList)
             last = 0;
         }
     }
-
+    end = clock();
+    elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;;
+    time += elapsedTime;
     if (last)
         printPageranks<<<1, 1>>>(totalVertices, prevPageRanks);
     else
         printPageranks<<<1, 1>>>(totalVertices, currPageRanks);
     cudaDeviceSynchronize();
+
+    cout << "Total time for page Rank: " << time << endl;
 }
