@@ -2,74 +2,174 @@
 #include "preprocessing.h"
 
 __device__ float tc = 0;
-__global__ void triangleCountParallel(ll vertices, ll *index, ll *headVertex){
+__global__ void triangleCountParallel(ll vertices, ll *index, ll *headVertex)
+{
     unsigned int u = blockIdx.x * blockDim.x + threadIdx.x;
-    if(u >= vertices) return;
-    
+    if (u >= vertices)
+        return;
+
     ll start_u = index[u];
     ll end_u = index[u + 1];
 
-    for(ll i = start_u; i < end_u; ++i){
+    for (ll i = start_u; i < end_u; ++i)
+    {
         ll t = headVertex[i];
         ll start_t = index[t];
         ll end_t = index[t + 1];
 
-        for(ll j = start_u; j < end_u; ++j){
-                ll r = headVertex[j];
+        for (ll j = start_u; j < end_u; ++j)
+        {
+            ll r = headVertex[j];
 
-                if(t == r) continue;
+            if (t == r)
+                continue;
 
-                int is_neighbour = 0;
-                
-                for(ll k = start_t; k < end_t; ++k){
-                    if(headVertex[k] == r){
-                        is_neighbour = 1;
-                        break;
-                    }
+            int is_neighbour = 0;
+
+            for (ll k = start_t; k < end_t; ++k)
+            {
+                if (headVertex[k] == r)
+                {
+                    is_neighbour = 1;
+                    break;
                 }
-                
-                if(is_neighbour) atomicAdd(&tc, 1);
             }
+
+            if (is_neighbour)
+                atomicAdd(&tc, 1);
+        }
     }
 }
 
-__global__ void printTriangles(){
+__global__ void printTriangles()
+{
     tc = tc / 6;
     printf("Using parallel version: %f\n", tc);
 }
 
-__global__ void triangleCountSerial(ll vertices, ll *index, ll *headVertex){
+__global__ void triangleCountSerial(ll vertices, ll *index, ll *headVertex)
+{
     float tcs = 0;
 
-    for(ll p = 0; p < vertices; ++p){
+    for (ll p = 0; p < vertices; ++p)
+    {
         ll start_p = index[p];
         ll end_p = index[p + 1];
 
-        for(ll i = start_p; i < end_p; ++i){
+        for (ll i = start_p; i < end_p; ++i)
+        {
             ll t = headVertex[i];
             ll start_t = index[t];
             ll end_t = index[t + 1];
 
-            for(ll j = start_p; j < end_p; ++j){
+            for (ll j = start_p; j < end_p; ++j)
+            {
                 ll r = headVertex[j];
 
-                if(t == r) continue;
+                if (t == r)
+                    continue;
 
                 int is_neighbour = 0;
-                
-                for(ll k = start_t; k < end_t; ++k){
-                    if(headVertex[k] == r){
+
+                for (ll k = start_t; k < end_t; ++k)
+                {
+                    if (headVertex[k] == r)
+                    {
                         is_neighbour = 1;
                         break;
                     }
                 }
 
-                if(is_neighbour) ++tcs;
+                if (is_neighbour)
+                    ++tcs;
             }
         }
     }
 
     printf("Using serial version: %f\n", tcs / 6);
+}
+
+__global__ void pagerankInitSerial(ll totalVertices, double *pageRanks)
+{
+    for (ll u = 0; u < totalVertices; ++u)
+    {
+        pageRanks[u] = 1 / (double)totalVertices;
+    }
+}
+
+__global__ void pagerankSerial(ll vertices, ll *index, ll *headVertex, double *pageranks)
+{
+    ll itr = 1;
+
+    while (itr < MAX_ITRS)
+    {
+        for (ll u = 0; u < vertices; ++u)
+        {
+            double val = 0.0;
+
+            ll start_u = index[u];
+            ll end_u = index[u + 1];
+
+            for (ll idx = start_u; idx < end_u; ++idx)
+            {
+                ll v = headVertex[idx];
+
+                ll v_outdegree = index[v + 1] - index[v];
+
+                if (v_outdegree > 0)
+                    val += pageranks[v] / v_outdegree;
+            }
+
+            pageranks[u] = val * dampingFactor + (1 - dampingFactor) / vertices;
+        }
+
+        ++itr;
+    }
+}
+
+__global__ void printPageranks(ll totalVertices, double *pageranks)
+{
+    printf("Pageranks are as follow:\n");
+
+    for (ll u = 0; u < totalVertices; ++u)
+    {
+        printf("%f ", pageranks[u]);
+    }
+
+    printf("\n");
+}
+
+__global__ void pagerankParallel(ll vertices, ll *index, ll *headvertex, double *prevPagerank, double *currPagerank)
+{
+    unsigned int u = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (u >= vertices)
+        return;
+
+    double val = 0.0;
+
+    ll start_u = index[u];
+    ll end_u = index[u + 1];
+
+    for(ll idx = start_u; idx < end_u; ++idx){
+        ll v = headvertex[idx];
+
+        ll v_outdegree = index[v + 1] - index[v];
+
+        if(v_outdegree > 0) val += prevPagerank[v] / (double)v_outdegree;
+    }
+
+    currPagerank[u] = val * dampingFactor + (1 - dampingFactor) / (double)vertices;
+}
+
+__global__ void pagerankInitParallel(ll vertices, double *pageRanks)
+{
+    unsigned int u = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (u >= vertices)
+        return;
+
+    pageRanks[u] = 1 / (double)vertices;
 }
 
 int main()
@@ -85,9 +185,16 @@ int main()
     string file3 = "Graphs/delaunay_n17.mtx";
     string file4 = "Graphs/kron_g500-logn16.mtx";
     string file5 = "Graphs/rgg_n_2_16_s0.mtx";
+    string file6 = "Graphs/delaunay_n24.mtx";
+    string file7 = "Graphs/inf-road_usa.mtx";
+    string file8 = "Graphs/delaunay_n19.mtx";
+    string file9 = "Graphs/delaunay_n20.mtx";
 
     string mtxFilePath = file4;
     double totalTime = 0.0;
+
+    size_t freeMemBefore = calculateMemoryConsumption();
+    std::cout << "Free GPU memory before kernel launch: " << freeMemBefore << " bytes" << std::endl;
 
     ifstream file(mtxFilePath);
 
@@ -108,7 +215,6 @@ int main()
     // Keep count of vertices. Track Max Vertex
     map<ll, ll> vertexCount;
     ll maxVertex = 0;
-
 
     int batch = 1;
 
@@ -177,7 +283,6 @@ int main()
                 sort(edgeList.begin(), edgeList.end(), comp_Edges_and_dest);
             else
                 sort(edgeList.begin(), edgeList.end(), comp_Edges);
-
 
             ll noOfedges = edgeList.size();
             ll vertices = vertexCount.size();
@@ -250,26 +355,145 @@ int main()
     file.close();
 
     // printCSR(totalVertices, hindex, hheadVertex, hweights, totalEdges, hvertexToIndexMap);
-    cout << "Triangle Counting Stats: " << endl;
+
+    // cout << "Triangle Counting Stats: " << endl;
     clock_t start, end;
     double elapsedTime;
 
+    // start = clock();
+    // triangleCountSerial<<<1, 1>>>(totalVertices, dindex, dheadVertex);
+    // cudaDeviceSynchronize();
+    // end = clock();
+    // elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
+    // cout << "Time for serial version: " << elapsedTime << endl;
+
+    // // -----------------------CALCULATE MEMORY CONSUMPTION-------------------------------------------------------
+    // size_t freeMemAfter = calculateMemoryConsumption();
+    // std::cout << "Free GPU memory after kernel launch: " << freeMemAfter << " bytes" << std::endl;
+
+    // // Calculate memory used by the kernel
+    // size_t memoryUsed = freeMemBefore - freeMemAfter;
+    // std::cout << "Memory used by the kernel: " << memoryUsed << " bytes" << std::endl;
+
+    // unsigned nblocks = ceil((float)totalVertices / BLOCKSIZE);
+
+    // start = clock();
+    // triangleCountParallel<<<nblocks, BLOCKSIZE>>>(totalVertices, dindex, dheadVertex);
+    // cudaDeviceSynchronize();
+    // end = clock();
+    // elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
+    // printTriangles<<<1, 1>>>();
+    // cudaDeviceSynchronize();
+    // cout << "Time for parallel version: " << elapsedTime << endl;
+
+    // // -----------------------CALCULATE MEMORY CONSUMPTION-------------------------------------------------------
+    // size_t freeMemAfter = calculateMemoryConsumption();
+    // std::cout << "Free GPU memory after kernel launch: " << freeMemAfter << " bytes" << std::endl;
+
+    // // Calculate memory used by the kernel
+    // size_t memoryUsed = freeMemBefore - freeMemAfter;
+    // std::cout << "Memory used by the kernel: " << memoryUsed << " bytes" << std::endl;
+
+    //--------------------------------------PAGERANK---------------------------------------------
+
+    cout << "RUNNING SERIAL VERSION" << endl;
+    computePRSerial(totalVertices, dindex, dheadVertex);
+
+    // cout << "RUNNING PARALLEL VERSION" << endl;
+    // computePRParallel(totalVertices, dindex, dheadVertex);
+
+    size_t freeMemAfter = calculateMemoryConsumption();
+    std::cout << "Free GPU memory after kernel launch: " << freeMemAfter << " bytes" << std::endl;
+    size_t memoryUsed = freeMemBefore - freeMemAfter;
+    std::cout << "Memory used by the kernel: " << memoryUsed << " bytes" << std::endl;
+
+    return 0;
+}
+
+void computePRParallel(ll vertices, ll *dindex, ll *dheadVertex)
+{
+    double time = 0;
+    double elapsedTime = 0;
+
+    double *prevPageRanks;
+    cudaMalloc(&prevPageRanks, (double)vertices * sizeof(double));
+
+    unsigned blocks = ceil((float)vertices / BLOCKSIZE);
+
+    clock_t start, end;
     start = clock();
-    triangleCountSerial<<<1,1>>>(totalVertices, dindex, dheadVertex);
+    pagerankInitParallel<<<blocks, BLOCKSIZE>>>(vertices, prevPageRanks);
     cudaDeviceSynchronize();
     end = clock();
     elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
-    cout << "Time for serial version: " << elapsedTime << endl;
-    
-    unsigned nblocks = ceil((float)totalVertices/ BLOCKSIZE);
+    time += elapsedTime;
+
+    double *currPageRanks;
+    cudaMalloc(&currPageRanks, (double)vertices * sizeof(double));
+
+    int last = 0;
 
     start = clock();
-    triangleCountParallel<<<nblocks, BLOCKSIZE>>>(totalVertices, dindex, dheadVertex);
+    for (ll itr = 0; itr < MAX_ITRS; ++itr)
+    {
+        if (itr & 1)
+        {
+            pagerankParallel<<<blocks, BLOCKSIZE>>>(vertices, dindex, dheadVertex, currPageRanks, prevPageRanks);
+            cudaDeviceSynchronize();
+            last = 1;
+        }
+        else
+        {
+            pagerankParallel<<<blocks, BLOCKSIZE>>>(vertices, dindex, dheadVertex, prevPageRanks, currPageRanks);
+            cudaDeviceSynchronize();
+            last = 0;
+        }
+    }
+    end = clock();
+    elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
+    
+    time += elapsedTime;
+    // if (last)
+    //     printPageranks<<<1, 1>>>(vertices, prevPageRanks);
+    // else
+    //     printPageranks<<<1, 1>>>(vertices, currPageRanks);
+    // cudaDeviceSynchronize();
+
+    cout << "Total time for page Rank using parallel version: " << time << endl;
+}
+
+void computePRSerial(ll vertices, ll *dindex, ll *dheadVertex)
+{
+    double time = 0;
+    double elapsedTime = 0;
+
+    double *prevPageRanks;
+    cudaMalloc(&prevPageRanks, (double)vertices * sizeof(double));
+
+    clock_t start, end;
+    start = clock();
+    pagerankInitSerial<<<1, 1>>>(vertices, prevPageRanks);
     cudaDeviceSynchronize();
     end = clock();
     elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
-    printTriangles<<<1,1>>>();
+    time += elapsedTime;
+
+    start = clock();
+    pagerankSerial<<<1, 1>>>(vertices, dindex, dheadVertex, prevPageRanks);
     cudaDeviceSynchronize();
-    cout << "Time for parallel version: " << elapsedTime << endl;
-    return 0;
+    end = clock();
+    elapsedTime = (double)(end - start) / CLOCKS_PER_SEC * 1000.0;
+    time += elapsedTime;
+
+    printPageranks<<<1, 1>>>(vertices, prevPageRanks);
+    cudaDeviceSynchronize();
+
+    cout << "Total time for page Rank using serial version: " << time << endl;
+}
+
+size_t calculateMemoryConsumption()
+{
+    size_t freeMem, totalMem;
+    cudaMemGetInfo(&freeMem, &totalMem);
+    return freeMem;
 }

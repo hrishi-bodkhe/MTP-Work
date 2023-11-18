@@ -97,3 +97,33 @@ ll nearestPowerOf2(ll value) {
 void printTimings(vector<double>& timings){
     for(double i: timings) cout << i << endl;
 }
+
+void constructSrcCSR(ll &vertices, ll *index, ll *sources, ll *headvertex, ll *weights, int directed, int weighted, vector<Edge> &edgeList, map<ll, ll> vertexCount, ll* vertexToIndexMap)
+{
+    ll edges = edgeList.size();
+
+    // constructing indices for index array
+    index[0] = 0;
+    int i = 1;
+    for(auto& p: vertexCount){
+        index[i] = p.second;
+        ++i;
+    }
+
+    i = 0;
+    for(auto& p: vertexCount){
+        vertexToIndexMap[i++] = p.first;
+    }
+
+    for (ll j = 1; j < vertices + 1; ++j)
+        index[j] += index[j - 1];
+
+    // constructing the headvertex and weights array
+    for (ll j = 0; j < edges; ++j)
+    {
+        Edge e = edgeList[j];
+        sources[j] = e.src;
+        headvertex[j] = e.dest;
+        weights[j] = e.wt;
+    }
+}

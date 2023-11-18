@@ -198,9 +198,14 @@ int main()
     string file3 = "Graphs/delaunay_n17.mtx";
     string file4 = "Graphs/kron_g500-logn16.mtx";
     string file5 = "Graphs/rgg_n_2_16_s0.mtx";
+    string file6 = "Graphs/delaunay_n24.mtx";
+    string file7 = "Graphs/inf-road_usa.mtx";
 
-    string mtxFilePath = file4;
+    string mtxFilePath = file6;
     double totalTime = 0.0;
+
+    size_t freeMemBefore = calculateMemoryConsumption();
+    std::cout << "Free GPU memory before kernel launch: " << freeMemBefore << " bytes" << std::endl;
 
     ifstream file(mtxFilePath);
 
@@ -496,7 +501,7 @@ int main()
     }
 
     file.close();
-
+    cout << "Graph Built" << endl;
     // -------------------------------------- P A G E R A N K -----------------------------------------------
 
     ll *dindegree;
@@ -514,8 +519,16 @@ int main()
     // printIndegrees<<<1,1>>>(totalVertices, dindegree);
     // printOutdegrees<<<1,1>>>(totalVertices, doutdegree);
     // cudaDeviceSynchronize();
-
+    
     computePagerank(totalVertices, doutdegree, deviceAdjList);
+
+    // -----------------------CALCULATE MEMORY CONSUMPTION-------------------------------------------------------
+    size_t freeMemAfter = calculateMemoryConsumption();
+    std::cout << "Free GPU memory after kernel launch: " << freeMemAfter << " bytes" << std::endl;
+
+    // Calculate memory used by the kernel
+    size_t memoryUsed = freeMemBefore - freeMemAfter;
+    std::cout << "Memory used by the kernel: " << memoryUsed << " bytes" << std::endl;
 
     return 0;
 }
@@ -568,4 +581,10 @@ void computePagerank(ll totalVertices, ll *doutdegrees, Node **adjList)
     cudaDeviceSynchronize();
 
     cout << "Total time for page Rank: " << time << endl;
+}
+
+size_t calculateMemoryConsumption() {
+    size_t freeMem, totalMem;
+    cudaMemGetInfo(&freeMem, &totalMem);
+    return freeMem;
 }

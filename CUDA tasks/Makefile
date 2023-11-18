@@ -2,9 +2,12 @@
 
 # Compiler settings
 CXX = nvcc
+ARCH = sm_35
+RDC = true
+CXXFLAGS = -arch=$(ARCH) -rdc=$(RDC)
 
 # Source files
-SOURCES = preprocessing.cpp Task4.cu
+SOURCES = preprocessing.cpp SSSPEdge.cu
 
 # Header files
 HEADERS = preprocessing.h

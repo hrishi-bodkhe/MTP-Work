@@ -46,4 +46,13 @@ void printTimings(vector<double>& timings);
 
 void computePagerank(ll totalVertices, ll *doutdegrees, Node **adjList);
 
+size_t calculateMemoryConsumption();
+
+void computePRSerial(ll vertices, ll *dindex, ll *dheadVertex);
+void computePRParallel(ll vertices, ll *dindex, ll *dheadVertex);
+
+void constructSrcCSR(ll &vertices, ll *index, ll *sources, ll *headvertex, ll *weights, int directed, int weighted, vector<Edge> &edgeList, map<ll, ll> vertexCount, ll* vertexToIndexMap);
+
+void ssspEdge(ll totalVertices, ll totalEdges, ll *dsources, ll *dheadVertex, ll *dweights, ll src);
+
 #endif
