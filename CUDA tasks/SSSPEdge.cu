@@ -66,7 +66,7 @@ int main()
     string file8 = "../../Graphs/delaunay_n19.mtx";
     string file9 = "../../Graphs/delaunay_n20.mtx";
 
-    string mtxFilePath = file4;
+    string mtxFilePath = file3;
     double totalTime = 0.0;
 
     size_t freeMemBefore = calculateMemoryConsumption();
