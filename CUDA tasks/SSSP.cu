@@ -3,6 +3,27 @@
 
 void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights);
 
+void ssspEdgeCentric(ll totalVertices, ll totalEdges, ll *src, ll *dest, ll *weights);
+
+void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *headvertex, ll *weights, unordered_map<ll, ll>& degrees);
+
+void buildCOO(ll edges, vector<Edge>& edgelist, ll *src, ll *dest, ll *weights);
+
+__global__ void ssspEdgeCall(ll totalEdges, ll *dsrc, ll *ddest, ll *dweights, ll *dist, int *ddchanged){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= totalEdges) return;
+
+    ll u = dsrc[id];
+    ll v = ddest[id];
+    ll wt = dweights[id];
+
+    if(dist[v] > dist[u] + wt){
+        atomicMin(&dist[v], dist[u] + wt);
+        *ddchanged = 1;
+    }
+}
+
 __global__ void ssspVertexCall(ll vertices, ll *dindex, ll *dheadVertex, ll *dweights, ll *dist, int *ddchanged){
     unsigned int u = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -42,23 +63,6 @@ __global__ void initSrc(ll src, ll *dist){
 __global__ void printDist(ll vertices, ll *dist){
     for(ll u = 0; u < 10; ++u) printf("%lld ", dist[u]);
     printf("\n");
-}
-
-void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *headvertex, ll *weights, unordered_map<ll, ll>& degrees){
-    index[0] = 0;
-
-    for(ll i = 0; i < edges; ++i){
-        Edge& e = edgelist[i];
-        ll u = e.src;
-        ll v = e.dest;
-        ll wt = e.wt;
-
-        index[u + 1] = degrees[u];
-        headvertex[i] = v;
-        weights[i] = wt;
-    }
-
-    for(ll u = 1; u < vertices + 1; ++u) index[u] += index[u - 1];
 }
 
 __global__ void printCSRKernel(ll vertices, ll *index){
@@ -155,6 +159,13 @@ int main(){
         return 0;
     }
 
+    cout << "What do you want to compute?" << endl;
+    cout << "1. Vertex-Based SSSP" << endl;
+    cout << "2. Edge-Based SSSP" << endl;
+
+    int algoChoice;
+    cin >> algoChoice;
+
     cout << endl;
     cout << "Graph: " << filename << endl;
 
@@ -233,10 +244,12 @@ int main(){
     if(sortedOption) sort(edgeList.begin(), edgeList.end(), comp_Edges_and_dest);
 
     ll *hindex;
+    ll *hsrc;
     ll *hheadvertex;
     ll *hweights;
 
-    hindex = (ll *)malloc((totalVertices + 1) * sizeof(ll));
+    if(algoChoice == 1) hindex = (ll *)malloc((totalVertices + 1) * sizeof(ll));
+    else if(algoChoice == 2) hsrc = (ll *)malloc((totalEdges) * sizeof (ll));
     hheadvertex = (ll *)malloc(totalEdges * sizeof(ll));
     hweights = (ll *)malloc(totalEdges * sizeof(ll));
 
@@ -244,17 +257,21 @@ int main(){
     cudaMemGetInfo(&initialFreeMemory, &totalMemory);
     cout << "Initial Free Memory: " << initialFreeMemory / (1024 * 1024 * 1024) << " GB" << endl;
 
-    buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
+    if(algoChoice == 1) buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
+    else if(algoChoice == 2) buildCOO(totalEdges, edgeList, hsrc, hheadvertex, hweights);
 
     ll *dindex;
+    ll *dsrc;
     ll *dheadVertex;
     ll *dweights;
 
-    cudaMalloc(&dindex, (ll)(totalVertices + 1) * sizeof(ll));
+    if(algoChoice == 1) cudaMalloc(&dindex, (ll)(totalVertices + 1) * sizeof(ll));
+    else if(algoChoice == 2) cudaMalloc(&dsrc, (ll)(totalEdges) * sizeof(ll));
     cudaMalloc(&dheadVertex, (ll)(totalEdges) * sizeof(ll));
     cudaMalloc(&dweights, (ll)(totalEdges) * sizeof(ll));
 
-    cudaMemcpy(dindex, hindex, (ll)(totalVertices + 1) * sizeof(ll), cudaMemcpyHostToDevice);
+    if(algoChoice == 1) cudaMemcpy(dindex, hindex, (ll)(totalVertices + 1) * sizeof(ll), cudaMemcpyHostToDevice);
+    else if(algoChoice == 2) cudaMemcpy(dsrc, hsrc, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dheadVertex, hheadvertex, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dweights, hweights, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
 
@@ -262,7 +279,8 @@ int main(){
     cout << "Graph Built" << endl;
     cout << endl;
 
-    ssspVertexCentric(totalVertices, dindex, dheadVertex, dweights);
+    if(algoChoice == 1) ssspVertexCentric(totalVertices, dindex, dheadVertex, dweights);
+    else if(algoChoice == 2) ssspEdgeCentric(totalVertices, totalEdges, dsrc, dheadVertex, dweights);
 
     size_t finalFreeMemory;
     cudaMemGetInfo(&finalFreeMemory, &totalMemory);
@@ -271,6 +289,93 @@ int main(){
     cout << "Consumed Memory: " << consumedMemory / (1024 * 1024) << " MB" << endl;
 
     return 0;
+}
+
+void ssspEdgeCentric(ll totalVertices, ll totalEdges, ll *src, ll *dest, ll *weights){
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
+    ll *dist;
+    cudaMalloc(&dist, (ll)(totalVertices) *sizeof(ll));
+
+    ll srcVertex = 0;
+
+    unsigned int nodeblocks = ceil((double)totalVertices / (double)BLOCKSIZE);
+
+    time = 0.0;
+    cudaEventRecord(start);
+    ssspVertexInit<<<nodeblocks, BLOCKSIZE>>>(totalVertices, dist);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+
+    cout << "Initialized distance array" << endl;
+    cout << endl;
+
+    time = 0.0;
+    cudaEventRecord(start);
+    initSrc<<<1,1>>>(srcVertex, dist);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+
+    cout << "Initialized source distance" << endl;
+    cout << endl;
+
+    int *hchanged;
+    hchanged = (int *)malloc(sizeof(int));
+
+    int *dchanged;
+    cudaMalloc(&dchanged, sizeof(int));
+
+    unsigned blocks = ceil((double)totalEdges / BLOCKSIZE);
+
+    int itr = 1;
+
+    while(true){
+        *hchanged = 0;
+        cudaMemcpy(dchanged, hchanged, sizeof(int), cudaMemcpyHostToDevice);
+
+//        cout << "Launching Kernel: " << endl;
+
+        time = 0.0;
+        cudaEventRecord(start);
+        ssspEdgeCall<<<blocks, BLOCKSIZE>>>(totalEdges, src, dest, weights, dist, dchanged);
+        cudaEventRecord(stop);
+        cudaEventSynchronize(stop);
+
+        cudaEventElapsedTime(&time, start, stop);
+        totalTime += time;
+
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA Error: %s\n", cudaGetErrorString(err));
+        }
+
+        cudaMemcpy(hchanged, dchanged, sizeof(int), cudaMemcpyDeviceToHost);
+
+//        cout << "Done Iteration: " << itr << endl;
+
+        ++itr;
+
+        if(*hchanged == 0) break;
+    }
+
+    cout << "Total Iterations: " << itr << endl;
+
+    cout << "First 10 values of dist vector: ";
+    printDist<<<1,1>>>(totalVertices, dist);
+    cudaDeviceSynchronize();
+
+    cout << "Total Time: " << totalTime << endl;
 }
 
 void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
@@ -356,4 +461,34 @@ void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweigh
     cudaDeviceSynchronize();
 
     cout << "Total Time: " << totalTime << endl;
+}
+
+void buildCOO(ll edges, vector<Edge>& edgelist, ll *src, ll *dest, ll *weights){
+    for(ll i = 0; i < edges; ++i){
+        Edge& e = edgelist[i];
+        ll u = e.src;
+        ll v = e.dest;
+        ll wt = e.wt;
+
+        src[i] = u;
+        dest[i] = v;
+        weights[i] = wt;
+    }
+}
+
+void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *headvertex, ll *weights, unordered_map<ll, ll>& degrees){
+    index[0] = 0;
+
+    for(ll i = 0; i < edges; ++i){
+        Edge& e = edgelist[i];
+        ll u = e.src;
+        ll v = e.dest;
+        ll wt = e.wt;
+
+        index[u + 1] = degrees[u];
+        headvertex[i] = v;
+        weights[i] = wt;
+    }
+
+    for(ll u = 1; u < vertices + 1; ++u) index[u] += index[u - 1];
 }
