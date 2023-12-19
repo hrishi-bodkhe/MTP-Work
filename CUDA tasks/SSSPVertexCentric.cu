@@ -1,6 +1,8 @@
 #include<cuda.h>
 #include "preprocessing.h"
 
+void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights);
+
 __global__ void ssspVertexCall(ll vertices, ll *dindex, ll *dheadVertex, ll *dweights, ll *dist, int *ddchanged){
     unsigned int u = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -153,6 +155,7 @@ int main(){
         return 0;
     }
 
+    cout << endl;
     cout << "Graph: " << filename << endl;
 
     ll totalVertices;
@@ -237,6 +240,10 @@ int main(){
     hheadvertex = (ll *)malloc(totalEdges * sizeof(ll));
     hweights = (ll *)malloc(totalEdges * sizeof(ll));
 
+    size_t initialFreeMemory, totalMemory;
+    cudaMemGetInfo(&initialFreeMemory, &totalMemory);
+    cout << "Initial Free Memory: " << initialFreeMemory / (1024 * 1024 * 1024) << " GB" << endl;
+
     buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
 
     ll *dindex;
@@ -251,24 +258,56 @@ int main(){
     cudaMemcpy(dheadVertex, hheadvertex, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dweights, hweights, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
 
-
+    cout << endl;
     cout << "Graph Built" << endl;
     cout << endl;
 
+    ssspVertexCentric(totalVertices, dindex, dheadVertex, dweights);
+
+    size_t finalFreeMemory;
+    cudaMemGetInfo(&finalFreeMemory, &totalMemory);
+    size_t consumedMemory = initialFreeMemory - finalFreeMemory;
+    cout << "Final Free Memory: " << finalFreeMemory / (1024 * 1024 * 1024) << " GB" << endl;
+    cout << "Consumed Memory: " << consumedMemory / (1024 * 1024) << " MB" << endl;
+
+    return 0;
+}
+
+void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
     ll *dist;
     cudaMalloc(&dist, (ll)(totalVertices) *sizeof(ll));
+
     ll src = 0;
 
     unsigned int nodeblocks = ceil((double)totalVertices / (double)BLOCKSIZE);
 
+    time = 0.0;
+    cudaEventRecord(start);
     ssspVertexInit<<<nodeblocks, BLOCKSIZE>>>(totalVertices, dist);
-    cudaDeviceSynchronize();
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
 
     cout << "Initialized distance array" << endl;
     cout << endl;
 
+    time = 0.0;
+    cudaEventRecord(start);
     initSrc<<<1,1>>>(src, dist);
-    cudaDeviceSynchronize();
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
 
     cout << "Initialized source distance" << endl;
     cout << endl;
@@ -279,16 +318,22 @@ int main(){
     int *dchanged;
     cudaMalloc(&dchanged, sizeof(int));
 
-//    ssspVertexCall<<<1,1>>>(totalVertices, dindex, dheadVertex, dweights, dist, changed);
-//    cudaDeviceSynchronize();
+    int itr = 1;
+
     while(true){
         *hchanged = 0;
         cudaMemcpy(dchanged, hchanged, sizeof(int), cudaMemcpyHostToDevice);
-//        cudaDeviceSynchronize();
-        cout << "Launching Kernel" << endl;
 
-        ssspVertexCall<<<nodeblocks, BLOCKSIZE>>>(totalVertices, dindex, dheadVertex, dweights, dist, dchanged);
-        cudaDeviceSynchronize();
+//        cout << "Launching Kernel: " << endl;
+
+        time = 0.0;
+        cudaEventRecord(start);
+        ssspVertexCall<<<nodeblocks, BLOCKSIZE>>>(totalVertices, dindex, dheadvertex, dweights, dist, dchanged);
+        cudaEventRecord(stop);
+        cudaEventSynchronize(stop);
+
+        cudaEventElapsedTime(&time, start, stop);
+        totalTime += time;
 
         cudaError_t err = cudaGetLastError();
         if (err != cudaSuccess) {
@@ -297,16 +342,18 @@ int main(){
 
         cudaMemcpy(hchanged, dchanged, sizeof(int), cudaMemcpyDeviceToHost);
 
-
 //        cout << "Done Iteration: " << itr << endl;
-//        ++itr;
-//        cout << *hchanged << endl;
+
+        ++itr;
 
         if(*hchanged == 0) break;
     }
 
+    cout << "Total Iterations: " << itr << endl;
+
+    cout << "First 10 values of dist vector: ";
     printDist<<<1,1>>>(totalVertices, dist);
     cudaDeviceSynchronize();
 
-    return 0;
+    cout << "Total Time: " << totalTime << endl;
 }
