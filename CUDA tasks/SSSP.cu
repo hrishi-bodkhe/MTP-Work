@@ -94,6 +94,7 @@ int main(){
     cout << "12. rgg_n_2_16_s0" << endl;
     cout << "13. rgg_n_2_24_s0" << endl;
     cout << "14. channel-500x100x100-b050" << endl;
+    cout << "15. hugetrace-00020" << endl;
 
     int fileNo;
     cin >> fileNo;
@@ -143,6 +144,9 @@ int main(){
             break;
         case 14:
             filename += "channel-500x100x100-b050";
+            break;
+        case 15:
+            filename += "hugetrace-00020";
             break;
         default:
             cout << "Invalid Choice." << endl;
