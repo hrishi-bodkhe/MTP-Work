@@ -1,9 +1,9 @@
 #include<cuda.h>
 #include "preprocessing.h"
 
-//__device__ float *idx;
-
 void ssspWorklist(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights);
+
+void ssspWorklist2(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights);
 
 void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights);
 
@@ -13,30 +13,81 @@ void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *head
 
 void buildCOO(ll edges, vector<Edge>& edgelist, ll *src, ll *dest, ll *weights);
 
-__global__ void ssspWorklistKernel(ll workers, ll *dindex, ll *dheadvertex, ll *dweights, ll *curr, ll *next, ll *dist, float *idx){
+__global__ void print2(int n, ll *arr){
+    for(int i = 0; i < n; ++i) printf("%ld ", arr[i]);
+    printf("\n");
+}
+
+__global__ void print(float *n, ll *arr){
+    for(int i = 0; i < int(*n); ++i) printf("%ld ", arr[i]);
+    printf("\n");
+}
+
+__global__ void ssspWorklistKernel2(ll workers, ll *dindex, ll *dheadvertex, ll *dweights, ll *curr, ll *next1, ll *next2, ll *dist, float *idx1, float *idx2){
     unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(id >= workers) return;
-//    printf("id: %d. Here 1\n", id);
 
     ll u = curr[id];
     ll start = dindex[u];
-//    printf("start: %ld \n", start);
     ll end = dindex[u + 1];
-//    printf("end: %ld \n", end);
-//    printf("Here 2\n");
 
     for(ll i = start; i < end; ++i){
         ll v = dheadvertex[i];
         ll wt = dweights[i];
-//        printf("Here 3\n");
+
+        if(dist[v] > dist[u] + wt){
+            atomicMin(&dist[v], dist[u] + wt);
+
+            if(id % 2 == 0) {
+                ll index1 = atomicAdd(idx1, 1);
+                next1[index1] = v;
+//                printf("%ld ", next1[index1]);
+            }
+            else {
+                ll index2 = atomicAdd(idx2, 1);
+                next2[index2] = v;
+//                printf("%ld ", next2[index2]);
+            }
+        }
+    }
+}
+
+__global__ void mergeWorklist(ll *curr, ll *next1, ll *next2, float *idx1, float *idx2){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+    int n1 = *idx1;
+    int n2 = *idx2;
+
+//    printf("n1: %d\n", n1);
+//    printf("n2: %d\n", n2);
+
+    if(id >= (n1 + n2)) return;
+//    printf("id: %d ", id);
+
+    if(id < n1) curr[id] = next1[id];
+    else curr[id] = next2[id - n1];
+//    printf("fdfdf%ld ", curr[id]);
+}
+
+__global__ void ssspWorklistKernel(ll workers, ll *dindex, ll *dheadvertex, ll *dweights, ll *curr, ll *next, ll *dist, float *idx){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= workers) return;
+
+    ll u = curr[id];
+    ll start = dindex[u];
+    ll end = dindex[u + 1];
+
+
+    for(ll i = start; i < end; ++i){
+        ll v = dheadvertex[i];
+        ll wt = dweights[i];
+
         if(dist[v] > dist[u] + wt){
             atomicMin(&dist[v], dist[u] + wt);
             ll index = atomicAdd(idx, 1);
 
             next[index] = v;
-//            printf("v: %ld, next[%ld]: %ld\n", v, index, next[index]);
-//            printf("Here 4\n");
         }
     }
 }
@@ -56,6 +107,14 @@ __global__ void swapWorklist(ll *curr, ll *next, ll idx){
 __global__ void setIndexForWorklist(float *idx){
 //    printf("Entered\n");
     *idx = 0;
+//    printf("Leaving\n");
+    return;
+}
+
+__global__ void setIndexForWorklist2(float *idx1, float *idx2){
+//    printf("Entered\n");
+    *idx1 = 0;
+    *idx2 = 0;
 //    printf("Leaving\n");
     return;
 }
@@ -154,6 +213,8 @@ int main(){
 
     int fileNo;
     cin >> fileNo;
+
+    srand(static_cast<unsigned int>(time(0)));
 
     int directed = 0;
     int weighted = 0;
@@ -342,7 +403,7 @@ int main(){
 
     if(algoChoice == 1) ssspVertexCentric(totalVertices, dindex, dheadVertex, dweights);
     else if(algoChoice == 2) ssspEdgeCentric(totalVertices, totalEdges, dsrc, dheadVertex, dweights);
-    else if(algoChoice == 3) ssspWorklist(totalVertices, dindex, dheadVertex, dweights);
+    else if(algoChoice == 3) ssspWorklist2(totalVertices, dindex, dheadVertex, dweights);
     else{
         cout << "Invalid choice!" << endl;
         return 0;
@@ -357,7 +418,7 @@ int main(){
     return 0;
 }
 
-void ssspWorklist(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
+void ssspWorklist2(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -369,6 +430,177 @@ void ssspWorklist(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
     cudaMalloc(&dist, (ll)(totalVertices) *sizeof(ll));
 
     ll srcVertex = 0;
+
+    cout << "Chosen source vertex is: " << srcVertex << endl;
+
+    unsigned int nodeblocks = ceil((double)totalVertices / (double)BLOCKSIZE);
+
+    time = 0.0;
+    cudaEventRecord(start);
+    ssspVertexInit<<<nodeblocks, BLOCKSIZE>>>(totalVertices, dist);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+
+    cout << "Initialized distance array" << endl;
+    cout << endl;
+
+    float *workers = (float*)malloc(sizeof(float));
+    float *temp1 = (float*)malloc(sizeof(float));
+    float *temp2 = (float*)malloc(sizeof(float));
+//    cout << "done";
+    *workers = 1;
+
+    ll *curr;
+    cudaMalloc(&curr, totalVertices * sizeof(ll));
+
+    ll *next1;
+    cudaMalloc(&next1, totalVertices * sizeof(ll));
+
+    ll *next2;
+    cudaMalloc(&next2, totalVertices * sizeof(ll));
+
+    cout << "Initialized current worklist" << endl;
+    cout << endl;
+
+    float *idx1, *idx2;
+    cudaMalloc(&idx1, sizeof(float));
+    cudaMalloc(&idx2, sizeof(float));
+
+    cout << "Defined index for next worklist" << endl;
+    cout << endl;
+
+    time = 0.0;
+    cudaEventRecord(start);
+    init<<<1,1>>>(srcVertex, dist, curr);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+
+    cout << "Initialized source distance and current worklist" << endl;
+    cout << endl;
+
+    ll itr = 0;
+
+    unsigned blocks = ceil((double)(*workers) / BLOCKSIZE);;
+
+    while(true){
+        time = 0.0;
+        cudaEventRecord(start);
+        setIndexForWorklist2<<<1, 1>>>(idx1, idx2);
+        cudaEventRecord(stop);
+        cudaEventSynchronize(stop);
+
+        cudaEventElapsedTime(&time, start, stop);
+        totalTime += time;
+        cudaDeviceSynchronize();
+
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA Error2: %s\n", cudaGetErrorString(err));
+            return;
+        }
+
+        time = 0.0;
+        cudaEventRecord(start);
+        ssspWorklistKernel2<<<blocks, BLOCKSIZE>>>(*workers, dindex, dheadvertex, dweights, curr, next1, next2, dist, idx1, idx2);
+        cudaEventRecord(stop);
+        cudaEventSynchronize(stop);
+
+        cudaEventElapsedTime(&time, start, stop);
+        totalTime += time;
+        cudaDeviceSynchronize();
+
+        ++itr;
+
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA Error1: %s\n", cudaGetErrorString(err));
+            return;
+        }
+
+        time = 0.0;
+        cudaEventRecord(start);
+        cudaMemcpy(temp1, idx1, sizeof(int), cudaMemcpyDeviceToHost);
+        cudaMemcpy(temp2, idx2, sizeof(int), cudaMemcpyDeviceToHost);
+        cudaEventRecord(stop);
+        cudaEventSynchronize(stop);
+
+        cudaEventElapsedTime(&time, start, stop);
+        totalTime += time;
+
+//        cout << *temp1 << endl;
+//        cout << *temp2 << endl;
+
+        *workers = *temp1 + *temp2;
+
+//        cout << "workers: " << *workers << endl;
+
+        if(*workers == 0) break;
+
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA Error3: %s\n", cudaGetErrorString(err));
+            return;
+        }
+
+        blocks = ceil((double) (*workers) / BLOCKSIZE);
+//        cout << "ff " << blocks << endl;
+
+//        time = 0.0;
+//        cudaEventRecord(start);
+        mergeWorklist<<<blocks, BLOCKSIZE>>>(curr, next1, next2, idx1, idx2);
+        cudaDeviceSynchronize();
+//        cudaEventRecord(stop);
+//        cudaEventSynchronize(stop);
+
+//        cudaEventElapsedTime(&time, start, stop);
+//        totalTime += time;
+//        cudaDeviceSynchronize();
+
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA Error4: %s\n", cudaGetErrorString(err));
+            return;
+        }
+
+//        print2<<<1,1>>>(*workers, curr);
+//        cudaDeviceSynchronize();
+        err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            printf("CUDA Error5: %s\n", cudaGetErrorString(err));
+            return;
+        }
+    }
+
+    cout << "Total Iterations: " << itr << endl;
+
+    cout << "First 10 values of dist vector: ";
+    printDist<<<1,1>>>(totalVertices, dist);
+    cudaDeviceSynchronize();
+
+    cout << "Total Time: " << totalTime << endl;
+}
+
+void ssspWorklist(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
+    ll *dist;
+    cudaMalloc(&dist, (ll)(totalVertices) *sizeof(ll));
+
+
+    ll srcVertex = 2;
+
+    cout << "Chosen source vertex is: " << srcVertex << endl;
 
     unsigned int nodeblocks = ceil((double)totalVertices / (double)BLOCKSIZE);
 
@@ -435,11 +667,6 @@ void ssspWorklist(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
             return;
         }
 
-//        cout << "Here";
-
-//        cout << "Before Kernel: " << endl;
-//        printDist<<<1,1>>>(*workers, curr);
-
         if(itr % 2 != 0) {
             time = 0.0;
             cudaEventRecord(start);
@@ -450,6 +677,9 @@ void ssspWorklist(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
             cudaEventElapsedTime(&time, start, stop);
             totalTime += time;
             cudaDeviceSynchronize();
+
+//            print<<<1,1>>>(idx, next);
+//            cudaDeviceSynchronize();
         }
         else{
             time = 0.0;
@@ -461,6 +691,9 @@ void ssspWorklist(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights){
             cudaEventElapsedTime(&time, start, stop);
             totalTime += time;
             cudaDeviceSynchronize();
+
+//            print<<<1,1>>>(idx, curr);
+//            cudaDeviceSynchronize();
         }
 
         ++itr;
@@ -597,6 +830,8 @@ void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweigh
     cudaMalloc(&dist, (ll)(totalVertices) *sizeof(ll));
 
     ll src = 0;
+
+    cout << "Chosen source vertex is: " << src << endl;
 
     unsigned int nodeblocks = ceil((double)totalVertices / (double)BLOCKSIZE);
 
