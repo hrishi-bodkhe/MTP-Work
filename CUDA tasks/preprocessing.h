@@ -9,6 +9,7 @@
 #define DIRECTED 0
 #define MAX_ITRS 10
 #define dampingFactor 0.85
+//#define INT_MAX 1e6
 using namespace std;
 
 struct Edge
@@ -25,6 +26,8 @@ typedef struct Node
     ll wt;
     struct Node *next;
 } Node;
+
+int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename, int& sortedOption);
 
 void readFile(string path, vector<Edge> &edgeList, ll &vertices, ll &edges, int &directed, int &weighted);
 
@@ -49,10 +52,29 @@ void computePagerank(ll totalVertices, ll *doutdegrees, Node **adjList);
 size_t calculateMemoryConsumption();
 
 void computePRSerial(ll vertices, ll *dindex, ll *dheadVertex);
+
 void computePRParallel(ll vertices, ll *dindex, ll *dheadVertex);
 
 void constructSrcCSR(ll &vertices, ll *index, ll *sources, ll *headvertex, ll *weights, int directed, int weighted, vector<Edge> &edgeList, map<ll, ll> vertexCount, ll* vertexToIndexMap);
 
-void ssspEdge(ll totalVertices, ll totalEdges, ll *dsources, ll *dheadVertex, ll *dweights, ll src);
+void ssspWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, ll *dweights, ll src);
+
+void ssspWorklist2(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, ll *dweights, ll src);
+
+void ssspBalancedWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadVertex, ll *dweights, ll src);
+
+void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights, ll src);
+
+void ssspEdgeCentric(ll totalVertices, ll totalEdges, ll *src, ll *dest, ll *weights, ll srcVertex);
+
+void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *headvertex, ll *weights, unordered_map<ll, ll>& degrees);
+
+void buildCOO(ll edges, vector<Edge>& edgelist, ll *src, ll *dest, ll *weights);
+
+void ssspSerial(ll totalVertices, ll *index, ll *headvertex, ll *weights, ll *dist, ll src);
+
+void printssspCpu(ll totalVertices, ll *dist);
+
+void ssspVertexCentricCorrectness(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights, ll srcVertex, ll *wdist);
 
 #endif

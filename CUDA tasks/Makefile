@@ -7,10 +7,10 @@ RDC = true
 CXXFLAGS = -arch=$(ARCH) -rdc=$(RDC)
 
 # Source files
-SOURCES = preprocessing.cpp SSSP.cu
+SOURCES = preprocessing.cu kernels.cu SSSP.cu
 
 # Header files
-HEADERS = preprocessing.h
+HEADERS = preprocessing.h kernels.h
 
 # Output executable
 OUTPUT = output
