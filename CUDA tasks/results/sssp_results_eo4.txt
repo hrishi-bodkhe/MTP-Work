@@ -1,0 +1,704 @@
+Run 1:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/chesapeake.mtx
+Vertices: 39
+Edges: 340
+Maximum Degree: 33
+Average Degree: 61
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 29
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 4
+First 10 values of dist vector: 2 2 2 2 2 2 2 2 2 2 
+Total Time: 0.314752
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 2 MB
+--------------------
+Run 2:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/rgg_n_2_16_s0.mtx
+Vertices: 65536
+Edges: 684254
+Maximum Degree: 27
+Average Degree: 65
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 43578
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 168
+First 10 values of dist vector: 118 104 123 119 134 74 81 117 103 81 
+Total Time: 13.7413
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 16 MB
+--------------------
+Run 3:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/kron_g500-logn16.mtx
+Vertices: 65536
+Edges: 4912796
+Maximum Degree: 17999
+Average Degree: 51690
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 50772
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 6
+First 10 values of dist vector: 3 3 3 3 2 2 3 2 2147483647 3 
+Total Time: 18.6026
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 80 MB
+--------------------
+Run 4:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-luxembourg_osm.mtx
+Vertices: 114599
+Edges: 239332
+Maximum Degree: 6
+Average Degree: 3
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 41538
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 806
+First 10 values of dist vector: 502 501 500 499 498 497 496 495 494 493 
+Total Time: 56.7431
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 10 MB
+--------------------
+Run 5:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n17.mtx
+Vertices: 131072
+Edges: 786352
+Maximum Degree: 17
+Average Degree: 21
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 69265
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 165
+First 10 values of dist vector: 58 84 45 68 136 65 133 150 91 106 
+Total Time: 13.9827
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 20 MB
+--------------------
+Run 6:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/co-papers-citeseer.mtx
+Vertices: 434102
+Edges: 32073440
+Maximum Degree: 1188
+Average Degree: 7895
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 98993
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 26
+First 10 values of dist vector: 7 7 7 7 7 6 7 7 7 7 
+Total Time: 10.9097
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 518 MB
+--------------------
+Run 7:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/co-papers-dblp.mtx
+Vertices: 540486
+Edges: 30491458
+Maximum Degree: 3299
+Average Degree: 3813
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 199142
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 15
+First 10 values of dist vector: 5 4 5 5 4 5 5 5 5 5 
+Total Time: 8.21968
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 506 MB
+--------------------
+Run 8:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/kron_g500-logn21.mtx
+Vertices: 2097152
+Edges: 182084020
+Maximum Degree: 213906
+Average Degree: 289319
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 214685
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 1
+First 10 values of dist vector: 2147483647 2147483647 2147483647 2147483647 2147483647 2147483647 2147483647 2147483647 2147483647 2147483647 
+Total Time: 0.180864
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 36 GB
+Consumed Memory: 2880 MB
+--------------------
+Run 9:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/hugetrace-00000.mtx
+Vertices: 4588484
+Edges: 13758266
+Maximum Degree: 3
+Average Degree: 5
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 3664583
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 3123
+First 10 values of dist vector: 1418 677 1066 1238 814 454 841 1464 988 931 
+Total Time: 254.017
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 38 GB
+Consumed Memory: 430 MB
+--------------------
+Run 10:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/channel-500x100x100-b050.mtx
+Vertices: 4802000
+Edges: 85362744
+Maximum Degree: 18
+Average Degree: 167
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 1343589
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 391
+First 10 values of dist vector: 123 122 122 121 121 120 120 119 119 118 
+Total Time: 56.1938
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 37 GB
+Consumed Memory: 1534 MB
+--------------------
+Run 11:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n23.mtx
+Vertices: 8388608
+Edges: 50331568
+Maximum Degree: 28
+Average Degree: 21
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 2796300
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 1159
+First 10 values of dist vector: 429 613 550 942 654 1032 901 381 490 169 
+Total Time: 120.685
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 37 GB
+Consumed Memory: 1156 MB
+--------------------
+Run 12:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/hugetrace-00020.mtx
+Vertices: 16002413
+Edges: 47997626
+Maximum Degree: 3
+Average Degree: 5
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 3591615
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 4162
+First 10 values of dist vector: 3055 3056 3060 3061 2459 2963 2372 2324 2975 2273 
+Total Time: 341.736
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 37 GB
+Consumed Memory: 1482 MB
+--------------------
+Run 13:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n24.mtx
+Vertices: 16777216
+Edges: 100663202
+Maximum Degree: 26
+Average Degree: 21
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 3557396
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 1586
+First 10 values of dist vector: 1081 1348 693 762 1081 1130 710 1159 1011 748 
+Total Time: 178.918
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 36 GB
+Consumed Memory: 2308 MB
+--------------------
+Run 14:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/rgg_n_2_24_s0.mtx
+Vertices: 16777216
+Edges: 265114400
+Maximum Degree: 40
+Average Degree: 140
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 13635329
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 1861
+First 10 values of dist vector: 1475 1384 1443 1428 1833 1501 1413 1385 1608 1426 
+Total Time: 252.794
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 34 GB
+Consumed Memory: 4820 MB
+--------------------
+Run 15:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-road_usa.mtx
+Vertices: 23947347
+Edges: 57708624
+Maximum Degree: 9
+Average Degree: 4
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 8023743
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 7796
+First 10 values of dist vector: 4582 4583 4559 4572 4560 4559 4566 4567 4559 4558 
+Total Time: 616.032
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 36 GB
+Consumed Memory: 1990 MB
+--------------------
+Run 16:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake           2. rgg_n_2_16_s0                   3. kron_g500-logn16         4. inf-luxembourg_osm
+ 5. delaunay_n17         6. co-papers-citeseer              7. co-papers-dblp           8. kron_g500-logn21
+ 9. hugetrace-00000     10. channel-500x100x100-b050       11. delaunay_n23            12. hugetrace-00020
+13. delaunay_n24        14. rgg_n_2_24_s0                  15. inf-road_usa            16. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-europe_osm.mtx
+Vertices: 50912018
+Edges: 108109320
+Maximum Degree: 13
+Average Degree: 3
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Chosen source vertex is: 34915821
+Initialized distance array
+
+Initialized current worklist
+
+Defined index for next worklist
+
+Initialized source distance and current worklist
+
+Total Iterations: 28634
+First 10 values of dist vector: 13011 13012 18466 18465 18464 18463 18462 18461 18460 18459 
+Total Time: 2068.14
+
+Checking correctness with vertex-centric approach...
+Correctness Verified!
+Final Free Memory: 35 GB
+Consumed Memory: 3994 MB
+--------------------
