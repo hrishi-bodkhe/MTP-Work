@@ -94,7 +94,7 @@ int main(){
     ll *hheadvertex;
     ll *hweights;
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5) hindex = (ll *)malloc((totalVertices + 1) * sizeof(ll));
+    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) hindex = (ll *)malloc((totalVertices + 1) * sizeof(ll));
     else if(algoChoice == 2) hsrc = (ll *)malloc((totalEdges) * sizeof (ll));
     hheadvertex = (ll *)malloc(totalEdges * sizeof(ll));
     hweights = (ll *)malloc(totalEdges * sizeof(ll));
@@ -103,20 +103,25 @@ int main(){
     cudaMemGetInfo(&initialFreeMemory, &totalMemory);
     cout << "Initial Free Memory: " << initialFreeMemory / (1024 * 1024 * 1024) << " GB" << endl;
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5) buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
+    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
     else if(algoChoice == 2) buildCOO(totalEdges, edgeList, hsrc, hheadvertex, hweights);
+
+//    for(ll i = 0; i <= totalVertices; ++i) cout << hindex[i] << ' ';
+//    cout << "-------" << endl;
+//    for(ll i = 0; i < totalEdges; ++i) cout << hheadvertex[i] << ' ';
+//    cout << "-------" << endl;
 
     ll *dindex;
     ll *dsrc;
     ll *dheadVertex;
     ll *dweights;
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5) cudaMalloc(&dindex, (ll)(totalVertices + 1) * sizeof(ll));
+    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) cudaMalloc(&dindex, (ll)(totalVertices + 1) * sizeof(ll));
     else if(algoChoice == 2) cudaMalloc(&dsrc, (ll)(totalEdges) * sizeof(ll));
     cudaMalloc(&dheadVertex, (ll)(totalEdges) * sizeof(ll));
     cudaMalloc(&dweights, (ll)(totalEdges) * sizeof(ll));
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5) cudaMemcpy(dindex, hindex, (ll)(totalVertices + 1) * sizeof(ll), cudaMemcpyHostToDevice);
+    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) cudaMemcpy(dindex, hindex, (ll)(totalVertices + 1) * sizeof(ll), cudaMemcpyHostToDevice);
     else if(algoChoice == 2) cudaMemcpy(dsrc, hsrc, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dheadVertex, hheadvertex, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dweights, hweights, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
@@ -125,13 +130,14 @@ int main(){
     cout << "Graph Built" << endl;
     cout << endl;
 
-    ll src = rand() % totalVertices;
+    ll src = 0;
 
     if(algoChoice == 1) ssspVertexCentric(totalVertices, dindex, dheadVertex, dweights, src);
     else if(algoChoice == 2) ssspEdgeCentric(totalVertices, totalEdges, dsrc, dheadVertex, dweights, src);
     else if(algoChoice == 3) ssspWorklist(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
     else if(algoChoice == 4) ssspWorklist2(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
     else if(algoChoice == 5) ssspBalancedWorklist(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
+    else if(algoChoice == 6) ssspEdgeWorklistCentric(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
     else{
         cout << "Invalid choice!" << endl;
         return 0;

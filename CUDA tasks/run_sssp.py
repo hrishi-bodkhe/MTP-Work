@@ -5,11 +5,11 @@ input1 = 'your_input1'
 input3 = 'your_input3'
 
 # Open the results file in write mode
-with open('results.txt', 'w') as f:
+with open('results/edge_worklist_results5.txt', 'w') as f:
     # Run your CUDA program 16 times
     for i in range(1, 17):
         input2 = i
-        inputs = [1, input2, 4]
+        inputs = [1, input2, 6]
 
         # Convert inputs to string and join them with a newline to simulate pressing Enter
         inputs = '\n'.join(map(str, inputs))

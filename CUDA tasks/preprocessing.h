@@ -77,4 +77,6 @@ void printssspCpu(ll totalVertices, ll *dist);
 
 void ssspVertexCentricCorrectness(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights, ll srcVertex, ll *wdist);
 
+void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll srcVertex);
+
 #endif

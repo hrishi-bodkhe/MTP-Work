@@ -17,8 +17,11 @@ OUTPUT = output
 
 all: $(OUTPUT)
 
+#$(OUTPUT): $(SOURCES) $(HEADERS)
+#	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(OUTPUT)
+
 $(OUTPUT): $(SOURCES) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(OUTPUT)
+	$(CXX) $(SOURCES) -o $(OUTPUT)
 
 clean:
 	rm -f $(OUTPUT)

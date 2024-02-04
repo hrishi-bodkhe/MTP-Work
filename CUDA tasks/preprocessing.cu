@@ -1,6 +1,10 @@
 #include "preprocessing.h"
 #include "kernels.h"
 #include<cuda.h>
+#include <thrust/device_vector.h>
+#include <thrust/device_ptr.h>
+#include <thrust/scan.h>
+#include <thrust/execution_policy.h>
 
 // Function to create a new node
 Node *createNode(int v, int weighted, int wt)
@@ -119,6 +123,7 @@ int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename,
     cout << "3. Worklist-Based SSSP" << endl;
     cout << "4. Even Odd Thread Distributed Worklist Based SSSP" << endl;
     cout << "5. Balanced Worklist Based SSSP" << endl;
+    cout << "6. Edge Centric Worklist Based SSSP" << endl;
     cout << endl;
 
     cout << "Enter Your Choice: ";
@@ -270,13 +275,13 @@ void ssspBalancedWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dhead
     *workers = 1;
 
     ll *curr;
-    cudaMalloc(&curr, totalVertices * sizeof(ll));
+    cudaMalloc(&curr, (4 * totalVertices) * sizeof(ll));
 
     ll *next1;
-    cudaMalloc(&next1, totalVertices * sizeof(ll));
+    cudaMalloc(&next1, (2 * totalVertices) * sizeof(ll));
 
     ll *next2;
-    cudaMalloc(&next2, totalVertices * sizeof(ll));
+    cudaMalloc(&next2, (2 * totalVertices) * sizeof(ll));
 
     cout << "Initialized current worklist" << endl;
     cout << endl;
@@ -325,7 +330,7 @@ void ssspBalancedWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dhead
 
         time = 0.0;
         cudaEventRecord(start);
-        ssspBalancedWorklistKernel<<<blocks, BLOCKSIZE>>>(*workers, dindex, dheadvertex, dweights, curr, next1, next2, dist, idx1, idx2, limit);
+        ssspBalancedWorklistKernel<<<blocks, BLOCKSIZE>>>(2 * totalVertices, *workers, dindex, dheadvertex, dweights, curr, next1, next2, dist, idx1, idx2, limit);
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);
 
@@ -436,13 +441,13 @@ void ssspWorklist2(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex,
     *workers = 1;
 
     ll *curr;
-    cudaMalloc(&curr, totalVertices * sizeof(ll));
+    cudaMalloc(&curr, 4 * totalVertices * sizeof(ll));
 
     ll *next1;
-    cudaMalloc(&next1, totalVertices * sizeof(ll));
+    cudaMalloc(&next1, 2 * totalVertices * sizeof(ll));
 
     ll *next2;
-    cudaMalloc(&next2, totalVertices * sizeof(ll));
+    cudaMalloc(&next2, 2 * totalVertices * sizeof(ll));
 
     cout << "Initialized current worklist" << endl;
     cout << endl;
@@ -581,15 +586,8 @@ void ssspWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, 
 
     unsigned int nodeblocks = ceil((double)totalVertices / (double)BLOCKSIZE);
 
-    time = 0.0;
-    cudaEventRecord(start);
     ssspVertexInit<<<nodeblocks, BLOCKSIZE>>>(totalVertices, dist);
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-
-    cudaEventElapsedTime(&time, start, stop);
-    totalTime += time;
-
+    cudaDeviceSynchronize();
     cout << "Initialized distance array" << endl;
     cout << endl;
 
@@ -598,10 +596,10 @@ void ssspWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, 
     *workers = 1;
 
     ll *curr;
-    cudaMalloc(&curr, (2 * totalVertices) * sizeof(ll));
+    cudaMalloc(&curr, (3 * totalVertices) * sizeof(ll));
 
     ll *next;
-    cudaMalloc(&next, (2 * totalVertices) * sizeof(ll));
+    cudaMalloc(&next, (3 * totalVertices) * sizeof(ll));
 
     cout << "Initialized current worklist" << endl;
     cout << endl;
@@ -617,73 +615,57 @@ void ssspWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, 
     init<<<1,1>>>(srcVertex, dist, curr);
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
-
     cudaEventElapsedTime(&time, start, stop);
     totalTime += time;
 
     cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("CUDA Error0: %s\n", cudaGetErrorString(err));
-        return;
-    }
+//    if (err != cudaSuccess) {
+//        printf("CUDA Error0: %s\n", cudaGetErrorString(err));
+//        return;
+//    }
 
     cout << "Initialized source distance and current worklist" << endl;
     cout << endl;
 
     ll itr = 1;
+    unsigned worklist_blocks;
 
+    time = 0.0;
+    cudaEventRecord(start);
     while(true){
-        unsigned blocks = ceil((double)(*workers) / BLOCKSIZE);
-        time = 0.0;
-        cudaEventRecord(start);
-        setIndexForWorklist<<<1, 1>>>(idx);
-        cudaEventRecord(stop);
-        cudaEventSynchronize(stop);
+        worklist_blocks = ceil((double)(*workers) / BLOCKSIZE);
 
-        cudaEventElapsedTime(&time, start, stop);
-        totalTime += time;
+        setIndexForWorklist<<<1, 1>>>(idx);
         cudaDeviceSynchronize();
 
-        err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            printf("CUDA Error1: %s\n", cudaGetErrorString(err));
-            return;
-        }
+//        err = cudaGetLastError();
+//        if (err != cudaSuccess) {
+//            printf("CUDA Error1: %s\n", cudaGetErrorString(err));
+//            return;
+//        }
 
         if(itr % 2 != 0) {
-            time = 0.0;
-            cudaEventRecord(start);
-            ssspWorklistKernel<<<blocks, BLOCKSIZE>>>(*workers, dindex, dheadvertex, dweights, curr, next, dist, idx, 2 * totalVertices);
-            cudaEventRecord(stop);
-            cudaEventSynchronize(stop);
-
-            cudaEventElapsedTime(&time, start, stop);
-            totalTime += time;
+            ssspWorklistKernel<<<worklist_blocks, BLOCKSIZE>>>(*workers, dindex, dheadvertex, dweights, curr, next, dist, idx, 3 * totalVertices);
             cudaDeviceSynchronize();
-            err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                printf("CUDA Error odd: %s\n", cudaGetErrorString(err));
-                return;
-            }
+
+//            err = cudaGetLastError();
+//            if (err != cudaSuccess) {
+//                printf("CUDA Error odd: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
 
 //            print<<<1,1>>>(idx, next);
 //            cudaDeviceSynchronize();
         }
         else{
-            time = 0.0;
-            cudaEventRecord(start);
-            ssspWorklistKernel<<<blocks, BLOCKSIZE>>>(*workers, dindex, dheadvertex, dweights, next, curr, dist, idx, 2 * totalVertices);
-            cudaEventRecord(stop);
-            cudaEventSynchronize(stop);
-
-            cudaEventElapsedTime(&time, start, stop);
-            totalTime += time;
+            ssspWorklistKernel<<<worklist_blocks, BLOCKSIZE>>>(*workers, dindex, dheadvertex, dweights, next, curr, dist, idx, 3 * totalVertices);
             cudaDeviceSynchronize();
-            err = cudaGetLastError();
-            if (err != cudaSuccess) {
-                printf("CUDA Error even: %s\n", cudaGetErrorString(err));
-                return;
-            }
+
+//            err = cudaGetLastError();
+//            if (err != cudaSuccess) {
+//                printf("CUDA Error even: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
 
 //            print<<<1,1>>>(idx, curr);
 //            cudaDeviceSynchronize();
@@ -691,29 +673,28 @@ void ssspWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, 
 
         ++itr;
 
-        err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            printf("CUDA Error2: %s\n", cudaGetErrorString(err));
-            return;
-        }
+//        err = cudaGetLastError();
+//        if (err != cudaSuccess) {
+//            printf("CUDA Error2: %s\n", cudaGetErrorString(err));
+//            return;
+//        }
 
-        time = 0.0;
-        cudaEventRecord(start);
         cudaMemcpy(workers, idx, sizeof(int), cudaMemcpyDeviceToHost);
-        cudaEventRecord(stop);
-        cudaEventSynchronize(stop);
-
-        cudaEventElapsedTime(&time, start, stop);
-        totalTime += time;
+        cudaDeviceSynchronize();
 
         if(*workers == 0) break;
 
-        err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            printf("CUDA Erro3: %s\n", cudaGetErrorString(err));
-            return;
-        }
+//        err = cudaGetLastError();
+//        if (err != cudaSuccess) {
+//            printf("CUDA Erro3: %s\n", cudaGetErrorString(err));
+//            return;
+//        }
     }
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+    cudaDeviceSynchronize();
 
     cout << "Total Iterations: " << itr << endl;
 
@@ -878,6 +859,10 @@ void ssspVertexCentricCorrectness(ll totalVertices, ll *dindex, ll *dheadvertex,
         if(*hchanged == 0) break;
     }
 
+    cout << "First 10 values of dist vector: ";
+    printDist<<<1,1>>>(totalVertices, vdist);
+    cudaDeviceSynchronize();
+
     int *hequalityFlag;
     int *dequalityFlag;
 
@@ -978,6 +963,261 @@ void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweigh
     cudaDeviceSynchronize();
 
     cout << "Total Time: " << totalTime << endl;
+}
+
+void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll srcVertex){
+    // Timing Calculations
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
+    // Allocating space on device for distance vector to store the distances
+    ll *dist;
+    cudaMalloc(&dist, (ll)(totalvertices) * sizeof(ll));
+    cout << "Space allocated for distance vector on device." << endl;
+    cout << endl;
+
+    // Initialising distance vector
+    unsigned int nodeblocks = ceil((double)totalvertices / (double)BLOCKSIZE);
+
+//    time = 0.0;
+//    cudaEventRecord(start);
+    ssspVertexInit<<<nodeblocks, BLOCKSIZE>>>(totalvertices, dist);
+    cudaDeviceSynchronize();
+//    cudaEventRecord(stop);
+//    cudaEventSynchronize(stop);
+//    cudaEventElapsedTime(&time, start, stop);
+//    totalTime += time;
+
+    cout << "Initialized distance array. Chosen source vertex is: " << srcVertex << endl;
+    cout << endl;
+
+    // Allocating space on device for input frontier. Size = numeber of vertices
+    ll *input_frontier;
+    cudaMalloc(&input_frontier, (ll)(2 * totalvertices) * sizeof(ll));
+    cout << "Space allocated for input frontiers." << endl;
+    cout << endl;
+
+    ll *deg_for_input_frontier;
+    cudaMalloc(&deg_for_input_frontier, (ll)(2 * totalvertices) * sizeof(ll));
+
+    ll *frontier_offset;
+    cudaMalloc(&frontier_offset, (ll)(2 * totalvertices + 1) * sizeof(ll));
+    cout << "Space allocated for frontier offset." << endl;
+    cout << endl;
+
+    // Allocating space on device for output frontier. Size = number of vertices + 1
+    ll *output_frontier;
+    cudaMalloc(&output_frontier, (ll)(2 * totalvertices) * sizeof(ll));
+    cout << "Space allocated for output frontier." << endl;
+    cout << endl;
+
+    // Defining global index that can operate on input frontier.
+    float *idx;
+    cudaMalloc(&idx, sizeof(float));
+    cout << "Defined index for input frontier." << endl;
+    cout << endl;
+
+    // Initialising distance of source vertex and adding source vertex to input frontier.
+    time = 0.0;
+    cudaEventRecord(start);
+    init<<<1,1>>>(srcVertex, dist, input_frontier);
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+
+    cudaError_t err = cudaGetLastError();                   // Catching errors, if any.
+    if (err != cudaSuccess) {
+        printf("CUDA Error while initialising distance for source vertex: %s\n", cudaGetErrorString(err));
+        return;
+    }
+    cout << "Initialized source distance and added source vertex to input frontier." << endl;
+    cout << endl;
+
+    // Defining number of workers. Initializing it with 1.
+    float *workers = (float*)malloc(sizeof(float));
+    *workers = 1;
+
+    ll iterations = 1;  // For calculating total iterations
+
+    // Meta data for computing frontier offset.
+    ll *host_prefix_sum;
+    host_prefix_sum = (ll *)malloc(sizeof(ll));
+    ll *device_prefix_sum;
+    cudaMalloc(&device_prefix_sum, sizeof(ll));
+
+    // Declaring device ptrs for device arrays.
+    thrust::device_ptr<ll> thrust_input_ptr;
+    thrust::device_ptr<ll> thrust_output_ptr;
+
+    ll frontier_size;
+    unsigned sssp_kernel_blocks;
+    unsigned degree_blocks;
+
+    // Normal SSSP loop
+    clock_t time2;
+    time2 = clock();
+    time = 0.0;
+    cudaEventRecord(start);
+    while(true){
+        // Setting index of the frontier.
+        setIndexForWorklist<<<1, 1>>>(idx);
+        cudaDeviceSynchronize();
+
+//        err = cudaGetLastError();
+//        if (err != cudaSuccess) {
+//            printf("CUDA Error while setting index for frontier: %s\n", cudaGetErrorString(err));
+//            return;
+//        }
+
+        if(iterations % 2 != 0){
+            /** Constructing Frontier offset **/
+//            cout << "iteration: " << iterations << endl;
+
+            // Allocating frontier_size to number of current workers
+            frontier_size = *workers;
+//            cout << "Size: " << frontier_size << endl;
+
+            // Replacing nodes present in input_frontier with their respective degrees
+            degree_blocks = ceil((double) (frontier_size) / BLOCKSIZE);
+
+            replaceNodeWithDegree<<<degree_blocks, BLOCKSIZE>>>(csr_offsets, input_frontier, deg_for_input_frontier, frontier_size);
+            cudaDeviceSynchronize();
+
+//            err = cudaGetLastError();
+//            if(err != cudaSuccess){
+//                printf("CUDA Error while replacing nodes with their degrees in frontier in odd iteration: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
+
+            // Assigning device pointers to device arrays
+            thrust_input_ptr = thrust::device_pointer_cast(deg_for_input_frontier);
+            thrust_output_ptr = thrust::device_pointer_cast(frontier_offset);
+
+            thrust::exclusive_scan(thrust::device, thrust_input_ptr, thrust_input_ptr + frontier_size + 1, thrust_output_ptr);
+            cudaDeviceSynchronize();
+
+//            constructFrontierOffset<<<1,1>>>(csr_offsets, input_frontier, frontier_offset, frontier_size, device_prefix_sum);
+
+//            err = cudaGetLastError();
+//            if(err != cudaSuccess){
+//                printf("CUDA Error while constructing frontier offset in odd iteration: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
+
+            /** Copying device prefix sum to host **/
+//            cudaMemcpy(host_prefix_sum, device_prefix_sum, sizeof(ll), cudaMemcpyDeviceToHost);
+//            cudaDeviceSynchronize();
+            device_prefix_sum = frontier_offset + frontier_size;
+            cudaMemcpy(host_prefix_sum, device_prefix_sum, sizeof(ll), cudaMemcpyDeviceToHost);
+            cudaDeviceSynchronize();
+
+//            cout << "Prefix Sum: " << *host_prefix_sum << endl;
+
+            // Threads to be launched will be equal to prefix sum
+            sssp_kernel_blocks = ceil((double) (*host_prefix_sum) / BLOCKSIZE);
+
+            /** Launching the SSSP edge centric kernel **/
+            ssspEdgeWorklist<<<sssp_kernel_blocks, BLOCKSIZE>>>(csr_offsets, csr_edges, csr_weights, input_frontier, frontier_offset, output_frontier, device_prefix_sum, dist, idx, frontier_size);
+            cudaDeviceSynchronize();
+
+//            err = cudaGetLastError();
+//            if(err != cudaSuccess){
+//                printf("CUDA Error while computing distance error in sssp kernel in odd iteration: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
+        }
+        else{
+            /** Constructing Frontier offset **/
+
+            // Allocating frontier_size to number of current workers
+            frontier_size = *workers;
+
+            // Replacing nodes present in input_frontier with their respective degrees
+            degree_blocks = ceil((double) (frontier_size) / BLOCKSIZE);
+
+            replaceNodeWithDegree<<<degree_blocks, BLOCKSIZE>>>(csr_offsets, output_frontier, deg_for_input_frontier, frontier_size);
+            cudaDeviceSynchronize();
+
+//            err = cudaGetLastError();
+//            if(err != cudaSuccess){
+//                printf("CUDA Error while replacing nodes with their degrees in frontier in even iteration: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
+
+            // Assigning device pointers to device arrays
+            thrust_input_ptr = thrust::device_pointer_cast(deg_for_input_frontier);
+            thrust_output_ptr = thrust::device_pointer_cast(frontier_offset);
+
+//          constructFrontierOffset<<<1,1>>>(csr_offsets, output_frontier, frontier_offset, *workers, device_prefix_sum);
+            thrust::exclusive_scan(thrust::device, thrust_input_ptr, thrust_input_ptr + frontier_size + 1, thrust_output_ptr);
+            cudaDeviceSynchronize();
+
+//            err = cudaGetLastError();
+//            if(err != cudaSuccess){
+//                printf("CUDA Error while constructing frontier offset in even iteration: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
+
+            /** Copying device prefix sum to host **/
+//            cudaMemcpy(host_prefix_sum, device_prefix_sum, sizeof(ll), cudaMemcpyDeviceToHost);
+//            cudaDeviceSynchronize();
+            device_prefix_sum = frontier_offset + frontier_size;
+            cudaMemcpy(host_prefix_sum, device_prefix_sum, sizeof(ll), cudaMemcpyDeviceToHost);
+            cudaDeviceSynchronize();
+//            cout << "Prefix Sum: " << *host_prefix_sum << endl;
+
+            // Threads to be launched will be equal to prefix sum
+            sssp_kernel_blocks = ceil((double) (*host_prefix_sum) / BLOCKSIZE);
+
+            /** Launching the SSSP edge centric kernel **/
+            ssspEdgeWorklist<<<sssp_kernel_blocks, BLOCKSIZE>>>(csr_offsets, csr_edges, csr_weights, output_frontier, frontier_offset, input_frontier, device_prefix_sum, dist, idx, frontier_size);
+            cudaDeviceSynchronize();
+
+//            err = cudaGetLastError();
+//            if(err != cudaSuccess){
+//                printf("CUDA Error while computing distance error in sssp kernel in even iteration: %s\n", cudaGetErrorString(err));
+//                return;
+//            }
+        }
+
+        ++iterations;
+
+        // Copying the number of next workers to host.
+        cudaMemcpy(workers, idx, sizeof(float), cudaMemcpyDeviceToHost);
+        cudaDeviceSynchronize();
+
+        if(*workers == 0) break;
+
+//        err = cudaGetLastError();
+//        if(err != cudaSuccess){
+//            printf("CUDA Error while copying device index to host workers: %s\n", cudaGetErrorString(err));
+//            return;
+//        }
+    }
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+    cudaDeviceSynchronize();
+    time2 = clock() - time2;
+
+
+    cout << "Total Iterations: " << iterations << endl;
+    cout << "Source Vertex: " << srcVertex << endl;
+    cout << "First 10 values of dist vector: ";
+    printDist<<<1,1>>>(totalvertices, dist);
+    cudaDeviceSynchronize();
+    cout << "Total Time: " << totalTime << endl;
+    cout << "Total Time 2: " << ((double) (time2)) / CLOCKS_PER_SEC << endl;
+    cout << endl;
+
+    cout << "Checking correctness with vertex-centric approach..." << endl;
+    ssspVertexCentricCorrectness(totalvertices, csr_offsets, csr_edges, csr_weights, srcVertex, dist);
 }
 
 void buildCOO(ll edges, vector<Edge>& edgelist, ll *src, ll *dest, ll *weights){

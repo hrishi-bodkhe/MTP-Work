@@ -6,7 +6,15 @@ __global__ void print2(int n, ll *arr);
 
 __global__ void print(float *n, ll *arr);
 
-__global__ void ssspBalancedWorklistKernel(ll workers, ll *dindex, ll *dheadvertex, ll *dweights, ll *curr, ll *next1, ll *next2, ll *dist, float *idx1, float *idx2, ll limit);
+__global__ void findJustSmallest(ll *arr, ll size, ll target, ll *ans);
+
+__global__ void replaceNodeWithDegree(ll *csr_offsets, ll *input_frontier, ll *deg_for_input_frontier, ll size);
+
+__global__ void constructFrontierOffset(ll *csr_offsets, ll *input_frontier, ll *frontier_offset, ll size, ll *prefixSum);
+
+__global__ void ssspEdgeWorklist(ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll *input_frontier, ll *frontier_offset, ll *output_frontier, ll *prefixSum, ll *dist, float *idx, ll size);
+
+__global__ void ssspBalancedWorklistKernel(ll totalvertices, ll workers, ll *dindex, ll *dheadvertex, ll *dweights, ll *curr, ll *next1, ll *next2, ll *dist, float *idx1, float *idx2, ll limit);
 
 __global__ void ssspWorklistKernel2(ll workers, ll *dindex, ll *dheadvertex, ll *dweights, ll *curr, ll *next1, ll *next2, ll *dist, float *idx1, float *idx2);
 
