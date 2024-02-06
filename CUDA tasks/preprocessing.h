@@ -27,7 +27,7 @@ typedef struct Node
     struct Node *next;
 } Node;
 
-int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename, int& sortedOption);
+int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename, int& sortedOption, string& filenameforCorrection);
 
 void readFile(string path, vector<Edge> &edgeList, ll &vertices, ll &edges, int &directed, int &weighted);
 
@@ -57,15 +57,15 @@ void computePRParallel(ll vertices, ll *dindex, ll *dheadVertex);
 
 void constructSrcCSR(ll &vertices, ll *index, ll *sources, ll *headvertex, ll *weights, int directed, int weighted, vector<Edge> &edgeList, map<ll, ll> vertexCount, ll* vertexToIndexMap);
 
-void ssspWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, ll *dweights, ll src);
+void ssspWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, ll *dweights, ll src, string &filenameforCorrection);
 
-void ssspWorklist2(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, ll *dweights, ll src);
+void ssspWorklist2(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadvertex, ll *dweights, ll src, string &filenameforCorrection);
 
-void ssspBalancedWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadVertex, ll *dweights, ll src);
+void ssspBalancedWorklist(ll totalVertices, ll totalEdges, ll *dindex, ll *dheadVertex, ll *dweights, ll src, string &filenameforCorrection);
 
-void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights, ll src);
+void ssspVertexCentric(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights, ll src, string &filenameforCorrection);
 
-void ssspEdgeCentric(ll totalVertices, ll totalEdges, ll *src, ll *dest, ll *weights, ll srcVertex);
+void ssspEdgeCentric(ll totalVertices, ll totalEdges, ll *src, ll *dest, ll *weights, ll srcVertex, string &filenameforCorrection);
 
 void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *headvertex, ll *weights, unordered_map<ll, ll>& degrees);
 
@@ -77,6 +77,12 @@ void printssspCpu(ll totalVertices, ll *dist);
 
 void ssspVertexCentricCorrectness(ll totalVertices, ll *dindex, ll *dheadvertex, ll *dweights, ll srcVertex, ll *wdist);
 
-void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll srcVertex);
+void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll srcVertex, string &filenameforCorrection);
+
+void ssspBucketWorklist(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll srcVertex, string &filenameforCorrection);
+
+void ssspBucketWorklist2(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll srcVertex, string &filenameforCorrection);
+
+void checkSSSPCorrectnessWithSlabGraph(ll *wdist, string &filename);
 
 #endif

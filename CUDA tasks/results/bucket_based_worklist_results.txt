@@ -1,4 +1,4 @@
-Run 1:
+Run 16:
 Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
 Choose input file: 
  1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
@@ -18,37 +18,39 @@ What do you want to compute?
 8. Bucket Based Extended Worklist SSSP
 
 Enter Your Choice: 
-Graph: ../../Graphs/chesapeake.mtx
-Vertices: 39
-Edges: 340
-Maximum Degree: 33
-Average Degree: 8
+Graph: ../../Graphs/nlpkkt240.mtx
+Vertices: 27993600
+Edges: 802465952
+Maximum Degree: 29
+Average Degree: 28
 Initial Free Memory: 38 GB
 
 Graph Built
 
-Chosen source vertex is: 0
-Initialized distance array
+Space allocated for distance vector on device.
 
-Initialized current worklist
+Initialized distance array. Chosen source vertex is: 0
 
-Defined index for next worklist
+Space allocated for worklists.
 
-Initialized source distance and current worklist
+Defined index for input frontier.
 
-Total Iterations: 4
-First 40 values of dist vector: 0 2 2 2 2 2 1 1 2 2 1 1 1 2 2 2 2 2 2 2 2 1 1 2 2 2 2 2 2 2 2 2 2 1 1 2 1 2 1 0 
-Total Time: 0.153344
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 244
+Source Vertex: 0
+First 40 values of dist vector: 0 2 2 4 4 6 6 8 8 10 10 12 12 14 14 16 16 18 18 20 20 22 22 24 24 26 26 28 28 30 30 32 32 34 34 36 36 38 38 40 
+Total Time: 195.035
 
 Checking correctness with vertex-centric approach...
-First 40 values of dist vector: 0 2 2 2 2 2 1 1 2 2 1 1 1 2 2 2 2 2 2 2 2 1 1 2 2 2 2 2 2 2 2 2 2 1 1 2 1 2 1 0 
+First 40 values of dist vector: 0 2 2 4 4 6 6 8 8 10 10 12 12 14 14 16 16 18 18 20 20 22 22 24 24 26 26 28 28 30 30 32 32 34 34 36 36 38 38 40 
 Correctness Verified!
 Checking correctness with SlabGraph results...
-Correctness Verified with SlabGraph!
-Final Free Memory: 38 GB
-Consumed Memory: 2 MB
+Results are not available.
+Final Free Memory: 24 GB
+Consumed Memory: 14604 MB
 --------------------
-Run 2:
+Run 17:
 Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
 Choose input file: 
  1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
@@ -68,33 +70,35 @@ What do you want to compute?
 8. Bucket Based Extended Worklist SSSP
 
 Enter Your Choice: 
-Graph: ../../Graphs/rgg_n_2_16_s0.mtx
-Vertices: 65536
-Edges: 684254
-Maximum Degree: 27
-Average Degree: 10
+Graph: ../../Graphs/inf-europe_osm.mtx
+Vertices: 50912018
+Edges: 108109320
+Maximum Degree: 13
+Average Degree: 2
 Initial Free Memory: 38 GB
 
 Graph Built
 
-Chosen source vertex is: 0
-Initialized distance array
+Space allocated for distance vector on device.
 
-Initialized current worklist
+Initialized distance array. Chosen source vertex is: 0
 
-Defined index for next worklist
+Space allocated for worklists.
 
-Initialized source distance and current worklist
+Defined index for input frontier.
 
-Total Iterations: 241
-First 40 values of dist vector: 0 18 12 1 24 70 50 1 20 50 27 50 2 7 59 65 9 26 21 12 1 20 12 49 39 48 26 61 58 16 29 20 10 66 46 19 43 25 22 22 
-Total Time: 11.3606
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 17347
+Source Vertex: 0
+First 40 values of dist vector: 0 1 8837 8836 8835 8834 8833 8832 8831 8830 8829 8828 8827 8826 8825 8824 8823 8822 8821 8820 8819 8818 8817 8816 8815 8814 8813 8812 8811 8810 8809 8808 8807 8806 8805 8804 8803 8802 8801 8800 
+Total Time: 1059.89
 
 Checking correctness with vertex-centric approach...
-First 40 values of dist vector: 0 18 12 1 24 70 50 1 20 50 27 50 2 7 59 65 9 26 21 12 1 20 12 49 39 48 26 61 58 16 29 20 10 66 46 19 43 25 22 22 
+First 40 values of dist vector: 0 1 8837 8836 8835 8834 8833 8832 8831 8830 8829 8828 8827 8826 8825 8824 8823 8822 8821 8820 8819 8818 8817 8816 8815 8814 8813 8812 8811 8810 8809 8808 8807 8806 8805 8804 8803 8802 8801 8800 
 Correctness Verified!
 Checking correctness with SlabGraph results...
 Correctness Verified with SlabGraph!
-Final Free Memory: 38 GB
-Consumed Memory: 18 MB
+Final Free Memory: 33 GB
+Consumed Memory: 5936 MB
 --------------------

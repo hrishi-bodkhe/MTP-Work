@@ -1,6 +1,73 @@
 #include<cuda_runtime.h>
 #include "kernels.h"
 
+__global__ void ssspBucketWorklistKernel(ll workers, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll *curr, ll *next1, ll *next2, ll *dist, float *idx1, float *idx2){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= workers) return;
+
+    ll u = curr[id];
+
+    ll start = csr_offsets[u];
+    ll end = csr_offsets[u + 1];
+
+    for(ll i = start; i < end; ++i){
+        ll v = csr_edges[i];
+        ll wt = csr_weights[i];
+
+        if(dist[v] > dist[u] + wt){
+            atomicMin(&dist[v], dist[u] + wt);
+            ll deg = csr_offsets[v + 1] - csr_offsets[v];
+            ll index;
+
+            if(deg <= 16) {
+                index = atomicAdd(idx1, 1);
+                next1[index] = v;
+            }
+            else if(deg >= 16){
+                index = atomicAdd(idx2, 1);
+                next2[index] = v;
+            }
+        }
+    }
+}
+
+__global__ void ssspBucketWorklistKernel2(ll workers, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll *curr, ll *next1, ll *next2, ll *next3, ll *dist, float *idx1, float *idx2, float *idx3){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= workers) return;
+
+    ll u = curr[id];
+
+    ll start = csr_offsets[u];
+    ll end = csr_offsets[u + 1];
+
+    for(ll i = start; i < end; ++i){
+        ll v = csr_edges[i];
+        ll wt = csr_weights[i];
+        ll deg = csr_offsets[v + 1] - csr_offsets[v];
+
+        if(dist[v] > dist[u] + wt){
+            atomicMin(&dist[v], dist[u] + wt);
+
+            ll index;
+
+            if(deg <= 32) {
+                index = atomicAdd(idx1, 1);
+                next1[index] = v;
+            }
+            else if(deg > 32 && deg <= 256){
+                index = atomicAdd(idx2, 1);
+                next2[index] = v;
+            }
+            else{
+                index = atomicAdd(idx3, 1);
+                next3[index] = v;
+            }
+        }
+    }
+}
+
 __global__ void replaceNodeWithDegree(ll *csr_offsets, ll *input_frontier, ll *deg_for_input_frontier, ll size){
     unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -252,6 +319,13 @@ __global__ void setIndexForWorklist2(float *idx1, float *idx2){
     *idx1 = 0;
     *idx2 = 0;
 //    printf("Leaving\n");
+    return;
+}
+
+__global__ void setIndexForWorklist(float *idx1, float *idx2, float *idx3){
+    *idx1 = 0;
+    *idx2 = 0;
+    *idx3 = 0;
     return;
 }
 

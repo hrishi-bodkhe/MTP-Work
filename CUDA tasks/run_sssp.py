@@ -1,15 +1,13 @@
 import subprocess
 
-# Define your inputs here
-input1 = 'your_input1'
-input3 = 'your_input3'
+filename = 'results/even_odd_worklist_results.txt'
 
 # Open the results file in write mode
-with open('results/edge_worklist_results5.txt', 'w') as f:
+with open(filename, 'w') as f:
     # Run your CUDA program 16 times
-    for i in range(1, 17):
+    for i in range(1, 18):
         input2 = i
-        inputs = [1, input2, 6]
+        inputs = [1, input2, 4]
 
         # Convert inputs to string and join them with a newline to simulate pressing Enter
         inputs = '\n'.join(map(str, inputs))
@@ -25,4 +23,4 @@ with open('results/edge_worklist_results5.txt', 'w') as f:
         f.write(stdout)
         f.write("--------------------\n")
 
-print("Results written to results.txt")
+print(f"Results written to {filename}")

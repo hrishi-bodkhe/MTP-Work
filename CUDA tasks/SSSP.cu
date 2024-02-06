@@ -8,8 +8,9 @@ int main(){
     int weighted = 0;
     int algoChoice;
     string filename = "";
+    string filenameforCorrection = "";
 
-    if(!takeChoices(directed, weighted, algoChoice, filename, sortedOption)) return 0;
+    if(!takeChoices(directed, weighted, algoChoice, filename, sortedOption, filenameforCorrection)) return 0;
 
     ll totalVertices;
     ll temp1, totalEdges; // for skipping the first line vertices, edges
@@ -57,24 +58,26 @@ int main(){
         e.src = src - 1;
         e.dest = dest - 1;
         e.wt = weighted ? wt : 1;
+        if(e.wt < 0) e.wt = 1;
 
         edgeList.push_back(e);
 
         degrees[e.src] += 1;
         maxDegree = max(degrees[e.src], maxDegree);
-        avgDegree += degrees[e.src];
+        avgDegree += 1;
 
         if (!directed)
         {
             e.src = dest - 1;
             e.dest = src - 1;
             e.wt = weighted ? wt : 1;
+            if(e.wt < 0) e.wt = 1;
 
             edgeList.push_back(e);
 
             degrees[e.src] += 1;
             maxDegree = max(degrees[e.src], maxDegree);
-            avgDegree += degrees[e.src];
+            avgDegree += 1;
         }
     }
 
@@ -94,8 +97,8 @@ int main(){
     ll *hheadvertex;
     ll *hweights;
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) hindex = (ll *)malloc((totalVertices + 1) * sizeof(ll));
-    else if(algoChoice == 2) hsrc = (ll *)malloc((totalEdges) * sizeof (ll));
+    if(algoChoice == 2) hsrc = (ll *)malloc((totalEdges) * sizeof (ll));
+    else hindex = (ll *)malloc((totalVertices + 1) * sizeof(ll));
     hheadvertex = (ll *)malloc(totalEdges * sizeof(ll));
     hweights = (ll *)malloc(totalEdges * sizeof(ll));
 
@@ -103,8 +106,8 @@ int main(){
     cudaMemGetInfo(&initialFreeMemory, &totalMemory);
     cout << "Initial Free Memory: " << initialFreeMemory / (1024 * 1024 * 1024) << " GB" << endl;
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
-    else if(algoChoice == 2) buildCOO(totalEdges, edgeList, hsrc, hheadvertex, hweights);
+    if (algoChoice == 2) buildCOO(totalEdges, edgeList, hsrc, hheadvertex, hweights);
+    else buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
 
 //    for(ll i = 0; i <= totalVertices; ++i) cout << hindex[i] << ' ';
 //    cout << "-------" << endl;
@@ -116,13 +119,13 @@ int main(){
     ll *dheadVertex;
     ll *dweights;
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) cudaMalloc(&dindex, (ll)(totalVertices + 1) * sizeof(ll));
-    else if(algoChoice == 2) cudaMalloc(&dsrc, (ll)(totalEdges) * sizeof(ll));
+    if (algoChoice == 2) cudaMalloc(&dsrc, (ll)(totalEdges) * sizeof(ll));
+    else cudaMalloc(&dindex, (ll)(totalVertices + 1) * sizeof(ll));
     cudaMalloc(&dheadVertex, (ll)(totalEdges) * sizeof(ll));
     cudaMalloc(&dweights, (ll)(totalEdges) * sizeof(ll));
 
-    if(algoChoice == 1 || algoChoice == 3 || algoChoice == 4 || algoChoice == 5 || algoChoice == 6) cudaMemcpy(dindex, hindex, (ll)(totalVertices + 1) * sizeof(ll), cudaMemcpyHostToDevice);
-    else if(algoChoice == 2) cudaMemcpy(dsrc, hsrc, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
+    if (algoChoice == 2) cudaMemcpy(dsrc, hsrc, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
+    else cudaMemcpy(dindex, hindex, (ll)(totalVertices + 1) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dheadVertex, hheadvertex, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dweights, hweights, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
 
@@ -132,12 +135,14 @@ int main(){
 
     ll src = 0;
 
-    if(algoChoice == 1) ssspVertexCentric(totalVertices, dindex, dheadVertex, dweights, src);
-    else if(algoChoice == 2) ssspEdgeCentric(totalVertices, totalEdges, dsrc, dheadVertex, dweights, src);
-    else if(algoChoice == 3) ssspWorklist(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
-    else if(algoChoice == 4) ssspWorklist2(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
-    else if(algoChoice == 5) ssspBalancedWorklist(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
-    else if(algoChoice == 6) ssspEdgeWorklistCentric(totalVertices, totalEdges, dindex, dheadVertex, dweights, src);
+    if(algoChoice == 1) ssspVertexCentric(totalVertices, dindex, dheadVertex, dweights, src, filenameforCorrection);
+    else if(algoChoice == 2) ssspEdgeCentric(totalVertices, totalEdges, dsrc, dheadVertex, dweights, src, filenameforCorrection);
+    else if(algoChoice == 3) ssspWorklist(totalVertices, totalEdges, dindex, dheadVertex, dweights, src, filenameforCorrection);
+    else if(algoChoice == 4) ssspWorklist2(totalVertices, totalEdges, dindex, dheadVertex, dweights, src, filenameforCorrection);
+    else if(algoChoice == 5) ssspBalancedWorklist(totalVertices, totalEdges, dindex, dheadVertex, dweights, src, filenameforCorrection);
+    else if(algoChoice == 6) ssspEdgeWorklistCentric(totalVertices, totalEdges, dindex, dheadVertex, dweights, src, filenameforCorrection);
+    else if(algoChoice == 7) ssspBucketWorklist(totalVertices, totalEdges, dindex, dheadVertex, dweights, src, filenameforCorrection);
+    else if(algoChoice == 8) ssspBucketWorklist2(totalVertices, totalEdges, dindex, dheadVertex, dweights, src, filenameforCorrection);
     else{
         cout << "Invalid choice!" << endl;
         return 0;
