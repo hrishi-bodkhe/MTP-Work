@@ -33,7 +33,6 @@ bool comp_Edges(Edge &a, Edge &b)
 
 int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename, int& sortedOption, string& filenameforCorrection){
     filename += "../../Graphs/";
-    filenameforCorrection += "../Gunrockresults/";
 
     string ext = ".mtx";
     int fileNo;
@@ -130,7 +129,6 @@ int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename,
     if(fileNo == 3 || fileNo == 8 || fileNo == 16) weighted = 1;
 
     filename += ext;
-    filenameforCorrection += ".txt";
     ifstream file(filename);
 
     if (!file.is_open())
@@ -147,17 +145,22 @@ int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename,
     cout << "5. Balanced Worklist Based SSSP" << endl;
     cout << "6. Edge Centric Worklist Based SSSP" << endl;
     cout << "7. Bucket Based Worklist SSSP" << endl;
-    cout << "8. Bucket Based Extended Worklist SSSP" << endl;
+    cout << "8. Bucket Based Extended Worklist SSSP" << endl;   // Not Working
+    cout << "9. Triangle Counting Vertex Centric" << endl;
     cout << endl;
 
     cout << "Enter Your Choice: ";
 
     cin >> algoChoice;
 
+    if(algoChoice == 9) filenameforCorrection = "../Gunrockresults/TC/" + filenameforCorrection + ".txt";
+    else filenameforCorrection = "../Gunrockresults/SSSP/" + filenameforCorrection + ".txt";
+
     cout << endl;
     cout << "Graph: " << filename << endl;
 
     file.close();
+//    filename = "input.txt";
 
     return 1;
 }
@@ -1096,6 +1099,8 @@ void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, l
     ll frontier_size;
     unsigned sssp_kernel_blocks;
     unsigned degree_blocks;
+    float prefixSumTime = 0.0;
+    clock_t time_req;
 
     // Normal SSSP loop
     time = 0.0;
@@ -1121,7 +1126,7 @@ void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, l
 
             // Replacing nodes present in input_frontier with their respective degrees
             degree_blocks = ceil((double) (frontier_size) / BLOCKSIZE);
-
+            time_req = clock();
             replaceNodeWithDegree<<<degree_blocks, BLOCKSIZE>>>(csr_offsets, input_frontier, deg_for_input_frontier, frontier_size);
             cudaDeviceSynchronize();
 
@@ -1137,6 +1142,7 @@ void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, l
 
             thrust::exclusive_scan(thrust::device, thrust_input_ptr, thrust_input_ptr + frontier_size + 1, thrust_output_ptr);
             cudaDeviceSynchronize();
+            time_req = clock() - time_req;
 
 //            constructFrontierOffset<<<1,1>>>(csr_offsets, input_frontier, frontier_offset, frontier_size, device_prefix_sum);
 
@@ -1176,7 +1182,7 @@ void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, l
 
             // Replacing nodes present in input_frontier with their respective degrees
             degree_blocks = ceil((double) (frontier_size) / BLOCKSIZE);
-
+            time_req = clock();
             replaceNodeWithDegree<<<degree_blocks, BLOCKSIZE>>>(csr_offsets, output_frontier, deg_for_input_frontier, frontier_size);
             cudaDeviceSynchronize();
 
@@ -1193,6 +1199,7 @@ void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, l
 //          constructFrontierOffset<<<1,1>>>(csr_offsets, output_frontier, frontier_offset, *workers, device_prefix_sum);
             thrust::exclusive_scan(thrust::device, thrust_input_ptr, thrust_input_ptr + frontier_size + 1, thrust_output_ptr);
             cudaDeviceSynchronize();
+            time_req = clock() - time_req;
 
 //            err = cudaGetLastError();
 //            if(err != cudaSuccess){
@@ -1223,6 +1230,7 @@ void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, l
         }
 
         ++iterations;
+        prefixSumTime += ((float)time_req / CLOCKS_PER_SEC * 1000);
 
         // Copying the number of next workers to host.
         cudaMemcpy(workers, idx, sizeof(float), cudaMemcpyDeviceToHost);
@@ -1249,6 +1257,7 @@ void ssspEdgeWorklistCentric(ll totalvertices, ll totalEdges, ll *csr_offsets, l
     printDist<<<1,1>>>(totalvertices, dist);
     cudaDeviceSynchronize();
     cout << "Total Time: " << totalTime << endl;
+    cout << "Time for Prefix Sum Calculation: " << prefixSumTime << endl;
     cout << endl;
 
     cout << "Checking correctness with vertex-centric approach..." << endl;
@@ -1586,7 +1595,7 @@ void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *head
 
 void checkSSSPCorrectnessWithSlabGraph(ll *wdist, string &filename){
     // Source Vertex should be 0
-    if(filename == "../Gunrockresults/nlpkkt240.txt") {
+    if(filename == "../Gunrockresults/SSSP/nlpkkt240.txt") {
         cout << "Results are not available." << endl;
         return;
     }
@@ -1635,7 +1644,65 @@ void checkSSSPCorrectnessWithSlabGraph(ll *wdist, string &filename){
     checkCorrectness<<<nodeblocks, BLOCKSIZE>>>(vectorsize, vdist, wdist, dequalityFlag);
     cudaDeviceSynchronize();
 
+    cout << "First 40 values of TC: ";
+    printDist<<<1,1>>>(vectorsize, vdist);
+    cudaDeviceSynchronize();
+
+    cout << endl;
+
     cudaMemcpy(hequalityFlag, dequalityFlag, sizeof(int), cudaMemcpyDeviceToHost);
     if(*hequalityFlag == 1) cout << "Correctness Verified with SlabGraph!" << endl;
     else cout << "Incorrect Result!" << endl;
+}
+
+void triangleCount(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges, string &filenameforCorrection){
+    // Timing Calculations
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
+    // Host side Triangle Count
+    float *host_tc = (float *)malloc(sizeof(float *));
+
+    // Device side Triangle Count
+    float *device_tc;
+    cudaMalloc(&device_tc, sizeof(float));
+
+    ll *device_tc_array;
+    cudaMalloc(&device_tc_array, (totalvertices) * sizeof(ll));
+
+    unsigned blocks = ceil((double) totalvertices / BLOCKSIZE);
+
+    cout << endl;
+    cout << "Launching TC Kernel" << endl;
+
+    // Kernel for TC
+    time = 0.0;
+    cudaEventRecord(start);
+    triangleCountVertexCentric<<<blocks, BLOCKSIZE>>>(csr_offsets, csr_edges, totalvertices, device_tc_array);
+    cudaDeviceSynchronize();
+
+//    divideTCbysix<<<1,1>>>(device_tc);
+//    cudaDeviceSynchronize();
+
+//    cudaMemcpy(host_tc, device_tc, sizeof(float), cudaMemcpyDeviceToHost);
+
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+    cudaDeviceSynchronize();
+
+//    cout << "Triangle Count: " << *host_tc << endl;
+    cout << "Total Time: " << totalTime << endl;
+    cout << "First 40 values of TC: ";
+    printDist<<<1,1>>>(totalvertices, device_tc_array);
+    cudaDeviceSynchronize();
+    cout << endl;
+
+    cout << "Checking Correctness with Gunrock..." << endl;
+    checkSSSPCorrectnessWithSlabGraph(device_tc_array, filenameforCorrection);
 }

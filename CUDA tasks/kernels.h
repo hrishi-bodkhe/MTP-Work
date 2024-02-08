@@ -2,6 +2,10 @@
 #define KERNELS_H
 #include "preprocessing.h"
 
+__global__ void divideTCbysix(float *tc);
+
+__global__ void triangleCountVertexCentric(ll *csr_offsets, ll *csr_edges, ll totalvertices, ll* tc);
+
 __global__ void print2(int n, ll *arr);
 
 __global__ void print(float *n, ll *arr);

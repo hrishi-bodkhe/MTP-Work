@@ -1,6 +1,42 @@
 #include<cuda_runtime.h>
 #include "kernels.h"
 
+__global__ void divideTCbysix(float *tc){
+    *tc = *tc / 6;
+}
+
+__global__ void triangleCountVertexCentric(ll *csr_offsets, ll *csr_edges, ll totalvertices, ll *tc){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= totalvertices) return;
+
+    ll vertex_p = id;
+    ll start_p = csr_offsets[vertex_p];
+    ll end_p = csr_offsets[vertex_p + 1];
+
+    for(ll s = start_p; s < end_p; ++s){
+        ll vertex_t = csr_edges[s];
+
+        for(ll i = start_p; i < end_p; ++i){
+            ll vertex_r = csr_edges[i];
+
+            if(vertex_t != vertex_r){
+                ll start_r = csr_offsets[vertex_r];
+                ll end_r = csr_offsets[vertex_r + 1];
+
+                for(int j = start_r; j < end_r; ++j){
+                    if(csr_edges[j] == vertex_t){
+                        tc[vertex_p] += 1;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    tc[vertex_p] /= 2;
+}
+
 __global__ void ssspBucketWorklistKernel(ll workers, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll *curr, ll *next1, ll *next2, ll *dist, float *idx1, float *idx2){
     unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
 

@@ -85,4 +85,6 @@ void ssspBucketWorklist2(ll totalvertices, ll totaledges, ll *csr_offsets, ll *c
 
 void checkSSSPCorrectnessWithSlabGraph(ll *wdist, string &filename);
 
+void triangleCount(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges, string &filenameforCorrection);
+
 #endif
