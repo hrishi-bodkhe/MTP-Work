@@ -1,0 +1,969 @@
+Run 1:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/chesapeake.mtx
+Vertices: 39
+Edges: 340
+Maximum Degree: 33
+Average Degree: 8
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 4
+Source Vertex: 0
+First 40 values of dist vector: 0 2 2 2 2 2 1 1 2 2 1 1 1 2 2 2 2 2 2 2 2 1 1 2 2 2 2 2 2 2 2 2 2 1 1 2 1 2 1 0 
+Total Time: 0.308032
+Time for Prefix Sum Calculation: 0.129
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 2 2 2 2 2 1 1 2 2 1 1 1 2 2 2 2 2 2 2 2 1 1 2 2 2 2 2 2 2 2 2 2 1 1 2 1 2 1 0 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 2 MB
+--------------------
+Run 2:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/rgg_n_2_16_s0.mtx
+Vertices: 65536
+Edges: 684254
+Maximum Degree: 27
+Average Degree: 10
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 241
+Source Vertex: 0
+First 40 values of dist vector: 0 18 12 1 24 70 50 1 20 50 27 50 2 7 59 65 9 26 21 12 1 20 12 49 39 48 26 61 58 16 29 20 10 66 46 19 43 25 22 22 
+Total Time: 21.4852
+Time for Prefix Sum Calculation: 8.698
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 18 12 1 24 70 50 1 20 50 27 50 2 7 59 65 9 26 21 12 1 20 12 49 39 48 26 61 58 16 29 20 10 66 46 19 43 25 22 22 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 20 MB
+--------------------
+Run 3:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/kron_g500-logn16.mtx
+Vertices: 65536
+Edges: 4912796
+Maximum Degree: 17999
+Average Degree: 74
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 7
+Source Vertex: 0
+First 40 values of dist vector: 0 3 4 3 3 3 3 3 2147483647 3 3 2147483647 3 3 3 2 3 3 3 3 3 2147483647 3 3 3 3 3 3 3 2147483647 3 3 2147483647 3 3 4 2147483647 3 2 3 
+Total Time: 2.59312
+Time for Prefix Sum Calculation: 0.259
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 3 4 3 3 3 3 3 2147483647 3 3 2147483647 3 3 3 2 3 3 3 3 3 2147483647 3 3 3 3 3 3 3 2147483647 3 3 2147483647 3 3 4 2147483647 3 2 3 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 84 MB
+--------------------
+Run 4:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-luxembourg_osm.mtx
+Vertices: 114599
+Edges: 239332
+Maximum Degree: 6
+Average Degree: 2
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 1036
+Source Vertex: 0
+First 40 values of dist vector: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 
+Total Time: 84.8891
+Time for Prefix Sum Calculation: 35.5733
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 16 MB
+--------------------
+Run 5:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n17.mtx
+Vertices: 131072
+Edges: 786352
+Maximum Degree: 17
+Average Degree: 5
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 158
+Source Vertex: 0
+First 40 values of dist vector: 0 84 27 105 83 75 76 103 110 97 95 27 23 100 39 62 64 93 99 113 131 101 97 104 141 99 123 106 100 122 106 93 89 95 94 62 92 114 93 114 
+Total Time: 14.2469
+Time for Prefix Sum Calculation: 5.623
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 84 27 105 83 75 76 103 110 97 95 27 23 100 39 62 64 93 99 113 131 101 97 104 141 99 123 106 100 122 106 93 89 95 94 62 92 114 93 114 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 26 MB
+--------------------
+Run 6:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/co-papers-citeseer.mtx
+Vertices: 434102
+Edges: 32073440
+Maximum Degree: 1188
+Average Degree: 73
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 27
+Source Vertex: 0
+First 40 values of dist vector: 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+Total Time: 9.06688
+Time for Prefix Sum Calculation: 1.068
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 538 MB
+--------------------
+Run 7:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/co-papers-dblp.mtx
+Vertices: 540486
+Edges: 30491458
+Maximum Degree: 3299
+Average Degree: 56
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 16
+Source Vertex: 0
+First 40 values of dist vector: 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 6 5 5 5 5 6 5 6 5 6 5 5 8 8 8 8 8 8 8 8 
+Total Time: 4.82768
+Time for Prefix Sum Calculation: 0.63
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 6 5 5 5 5 6 5 6 5 6 5 5 8 8 8 8 8 8 8 8 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 528 MB
+--------------------
+Run 8:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/kron_g500-logn21.mtx
+Vertices: 2097152
+Edges: 182084020
+Maximum Degree: 213906
+Average Degree: 86
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 7
+Source Vertex: 0
+First 40 values of dist vector: 0 3 4 3 3 4 2147483647 3 4 3 3 3 3 2147483647 3 3 4 3 3 3 2147483647 2147483647 4 2147483647 4 3 3 4 4 2147483647 3 2147483647 3 4 3 2147483647 2147483647 3 4 2 
+Total Time: 26.6267
+Time for Prefix Sum Calculation: 0.388
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 3 4 3 3 4 2147483647 3 4 3 3 3 3 2147483647 3 3 4 3 3 3 2147483647 2147483647 4 2147483647 4 3 3 4 4 2147483647 3 2147483647 3 4 3 2147483647 2147483647 3 4 2 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 36 GB
+Consumed Memory: 2962 MB
+--------------------
+Run 9:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/hugetrace-00000.mtx
+Vertices: 4588484
+Edges: 13758266
+Maximum Degree: 3
+Average Degree: 2
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 2662
+Source Vertex: 0
+First 40 values of dist vector: 0 1418 678 2054 604 1845 942 1452 1108 2321 1400 1881 1578 2033 970 1363 1102 2344 1557 1081 476 261 857 1389 1428 859 1715 432 1808 952 1089 802 804 906 477 474 1377 1155 1334 1332 
+Total Time: 267.872
+Time for Prefix Sum Calculation: 102.655
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1418 678 2054 604 1845 942 1452 1108 2321 1400 1881 1578 2033 970 1363 1102 2344 1557 1081 476 261 857 1389 1428 859 1715 432 1808 952 1089 802 804 906 477 474 1377 1155 1334 1332 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 610 MB
+--------------------
+Run 10:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/channel-500x100x100-b050.mtx
+Vertices: 4802000
+Edges: 85362744
+Maximum Degree: 18
+Average Degree: 17
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 501
+Source Vertex: 0
+First 40 values of dist vector: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 
+Total Time: 90.6779
+Time for Prefix Sum Calculation: 19.404
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 37 GB
+Consumed Memory: 1716 MB
+--------------------
+Run 11:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n23.mtx
+Vertices: 8388608
+Edges: 50331568
+Maximum Degree: 28
+Average Degree: 5
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 1151
+Source Vertex: 0
+First 40 values of dist vector: 0 279 268 858 454 831 711 404 357 465 315 745 235 246 719 771 357 608 966 552 848 674 352 639 443 700 767 868 949 1007 1050 571 387 347 81 383 403 448 373 419 
+Total Time: 161.977
+Time for Prefix Sum Calculation: 45.1014
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 279 268 858 454 831 711 404 357 465 315 745 235 246 719 771 357 608 966 552 848 674 352 639 443 700 767 868 949 1007 1050 571 387 347 81 383 403 448 373 419 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 37 GB
+Consumed Memory: 1478 MB
+--------------------
+Run 12:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/hugetrace-00020.mtx
+Vertices: 16002413
+Edges: 47997626
+Maximum Degree: 3
+Average Degree: 2
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 4805
+Source Vertex: 0
+First 40 values of dist vector: 0 5 11 16 3123 126 3044 3014 113 2994 2993 104 156 157 334 75 53 66 51 50 39 173 174 3076 8 5 10 15 177 178 75 78 3181 3410 84 88 98 93 313 295 
+Total Time: 509.208
+Time for Prefix Sum Calculation: 181.395
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 5 11 16 3123 126 3044 3014 113 2994 2993 104 156 157 334 75 53 66 51 50 39 173 174 3076 8 5 10 15 177 178 75 78 3181 3410 84 88 98 93 313 295 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 36 GB
+Consumed Memory: 2094 MB
+--------------------
+Run 13:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n24.mtx
+Vertices: 16777216
+Edges: 100663202
+Maximum Degree: 26
+Average Degree: 5
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 1652
+Source Vertex: 0
+First 40 values of dist vector: 0 1395 738 1446 1166 1163 757 1329 1005 771 711 775 656 607 1303 1067 1069 753 1000 1180 1399 994 560 1010 1420 1338 1114 968 1094 947 956 984 879 840 843 408 1024 1162 770 601 
+Total Time: 234.967
+Time for Prefix Sum Calculation: 62.8833
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1395 738 1446 1166 1163 757 1329 1005 771 711 775 656 607 1303 1067 1069 753 1000 1180 1399 994 560 1010 1420 1338 1114 968 1094 947 956 984 879 840 843 408 1024 1162 770 601 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 36 GB
+Consumed Memory: 2950 MB
+--------------------
+Run 14:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/rgg_n_2_24_s0.mtx
+Vertices: 16777216
+Edges: 265114400
+Maximum Degree: 40
+Average Degree: 15
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 2623
+Source Vertex: 0
+First 40 values of dist vector: 0 301 82 132 657 70 189 300 294 142 455 238 574 563 10 263 366 622 687 483 256 318 334 377 108 36 162 520 533 360 111 606 85 109 189 185 209 32 255 589 
+Total Time: 365.557
+Time for Prefix Sum Calculation: 107.491
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 301 82 132 657 70 189 300 294 142 455 238 574 563 10 263 366 622 687 483 256 318 334 377 108 36 162 520 533 360 111 606 85 109 189 185 209 32 255 589 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 33 GB
+Consumed Memory: 5462 MB
+--------------------
+Run 15:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-road_usa.mtx
+Vertices: 23947347
+Edges: 57708624
+Maximum Degree: 9
+Average Degree: 2
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 6263
+Source Vertex: 0
+First 40 values of dist vector: 0 1 123 41 124 123 128 129 123 122 123 122 3 120 121 126 127 128 123 120 114 110 103 102 104 119 118 118 117 113 29 30 114 113 106 102 100 19 20 99 
+Total Time: 733.173
+Time for Prefix Sum Calculation: 286.657
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1 123 41 124 123 128 129 123 122 123 122 3 120 121 126 127 128 123 120 114 110 103 102 104 119 118 118 117 113 29 30 114 113 106 102 100 19 20 99 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 36 GB
+Consumed Memory: 2902 MB
+--------------------
+Run 16:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/nlpkkt240.mtx
+Vertices: 27993600
+Edges: 802465952
+Maximum Degree: 29
+Average Degree: 28
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 244
+Source Vertex: 0
+First 40 values of dist vector: 0 2 2 4 4 6 6 8 8 10 10 12 12 14 14 16 16 18 18 20 20 22 22 24 24 26 26 28 28 30 30 32 32 34 34 36 36 38 38 40 
+Total Time: 275.569
+Time for Prefix Sum Calculation: 16.629
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 2 2 4 4 6 6 8 8 10 10 12 12 14 14 16 16 18 18 20 20 22 22 24 24 26 26 28 28 30 30 32 32 34 34 36 36 38 38 40 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Results are not available.
+Final Free Memory: 24 GB
+Consumed Memory: 14604 MB
+--------------------
+Run 17:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-europe_osm.mtx
+Vertices: 50912018
+Edges: 108109320
+Maximum Degree: 13
+Average Degree: 2
+Initial Free Memory: 38 GB
+
+Graph Built
+
+Space allocated for distance vector on device.
+
+Initialized distance array. Chosen source vertex is: 0
+
+Space allocated for input frontiers.
+
+Space allocated for frontier offset.
+
+Space allocated for output frontier.
+
+Defined index for input frontier.
+
+Initialized source distance and added source vertex to input frontier.
+
+Total Iterations: 17347
+Source Vertex: 0
+First 40 values of dist vector: 0 1 8837 8836 8835 8834 8833 8832 8831 8830 8829 8828 8827 8826 8825 8824 8823 8822 8821 8820 8819 8818 8817 8816 8815 8814 8813 8812 8811 8810 8809 8808 8807 8806 8805 8804 8803 8802 8801 8800 
+Total Time: 1596.78
+Time for Prefix Sum Calculation: 621.215
+
+Checking correctness with vertex-centric approach...
+First 40 values of dist vector: 0 1 8837 8836 8835 8834 8833 8832 8831 8830 8829 8828 8827 8826 8825 8824 8823 8822 8821 8820 8819 8818 8817 8816 8815 8814 8813 8812 8811 8810 8809 8808 8807 8806 8805 8804 8803 8802 8801 8800 
+Correctness Verified!
+Checking correctness with SlabGraph results...
+Correctness Verified with SlabGraph!
+Final Free Memory: 33 GB
+Consumed Memory: 5936 MB
+--------------------

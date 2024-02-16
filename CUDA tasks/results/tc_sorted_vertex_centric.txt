@@ -1,0 +1,784 @@
+Run 1:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/chesapeake.mtx
+
+Vertices: 39
+Edges: 340
+Maximum Degree: 33
+Average Degree: 8
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 0.155648
+First 40 values of TC: 22 31 10 2 2 4 26 31 15 7 12 16 10 12 14 6 4 14 14 2 5 31 20 2 6 9 15 7 6 10 7 12 12 1 36 56 2 20 71 0 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 22 31 10 2 2 4 26 31 15 7 12 16 10 12 14 6 4 14 14 2 5 31 20 2 6 9 15 7 6 10 7 12 12 1 36 56 2 20 71 0 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 2 MB
+--------------------
+Run 2:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/rgg_n_2_16_s0.mtx
+
+Vertices: 65536
+Edges: 684254
+Maximum Degree: 27
+Average Degree: 10
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 0.190336
+First 40 values of TC: 2 6 55 2 13 42 20 1 8 25 21 25 1 15 3 0 16 31 10 48 2 3 48 26 2 22 10 4 8 3 1 1 13 10 10 25 6 2 5 36 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 2 6 55 2 13 42 20 1 8 25 21 25 1 15 3 0 16 31 10 48 2 3 48 26 2 22 10 4 8 3 1 1 13 10 10 25 6 2 5 36 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 14 MB
+--------------------
+Run 3:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/kron_g500-logn16.mtx
+
+Vertices: 65536
+Edges: 4912796
+Maximum Degree: 17999
+Average Degree: 74
+
+Duplicates: 327
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 26876.7
+First 40 values of TC: 1 712 2 94 1018 95 7 935 0 6 5842 0 7134 197 130 47013 159 52102 130 32 13 0 12 13 771 117 70 15 1 0 6 6899 0 78 1 4 0 5 119 111 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 1 704 1 92 1008 92 6 926 0 6 5819 0 7110 191 126 46948 155 52037 126 30 12 0 11 12 762 113 68 15 1 0 5 6871 0 77 1 4 0 5 117 107 
+
+Incorrect Result!
+Final Free Memory: 38 GB
+Consumed Memory: 78 MB
+--------------------
+Run 4:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-luxembourg_osm.mtx
+
+Vertices: 114599
+Edges: 239332
+Maximum Degree: 6
+Average Degree: 2
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 0.054336
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 6 MB
+--------------------
+Run 5:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n17.mtx
+
+Vertices: 131072
+Edges: 786352
+Maximum Degree: 17
+Average Degree: 5
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 0.130048
+First 40 values of TC: 7 6 6 3 4 4 5 8 6 6 7 4 6 8 7 6 4 7 8 6 7 6 9 6 8 8 7 4 8 6 7 6 8 6 5 6 4 9 6 5 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 7 6 6 3 4 4 5 8 6 6 7 4 6 8 7 6 4 7 8 6 7 6 9 6 8 8 7 4 8 6 7 6 8 6 5 6 4 9 6 5 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 14 MB
+--------------------
+Run 6:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/co-papers-citeseer.mtx
+
+Vertices: 434102
+Edges: 32073440
+Maximum Degree: 1188
+Average Degree: 73
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 408.623
+First 40 values of TC: 9180 9180 9208 9180 9180 9422 9180 9235 9183 9180 9180 9180 9185 9180 9180 9270 9180 9866 9180 9822 9180 9180 9180 9866 9732 9180 9180 9180 9180 9822 9279 9180 9180 9185 9180 9270 9180 9180 9282 9180 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 9180 9180 9208 9180 9180 9422 9180 9235 9183 9180 9180 9180 9185 9180 9180 9270 9180 9866 9180 9822 9180 9180 9180 9866 9732 9180 9180 9180 9180 9822 9279 9180 9180 9185 9180 9270 9180 9180 9282 9180 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 498 MB
+--------------------
+Run 7:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/co-papers-dblp.mtx
+
+Vertices: 540486
+Edges: 30491458
+Maximum Degree: 3299
+Average Degree: 56
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 979.92
+First 40 values of TC: 171 515 171 424 237 171 171 171 171 307 171 171 172 171 171 171 171 171 171 171 55 469 478 469 478 55 469 55 752 55 478 478 136 136 136 136 136 136 136 136 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 171 515 171 424 237 171 171 171 171 307 171 171 172 171 171 171 171 171 171 171 55 469 478 469 478 55 469 55 752 55 478 478 136 136 136 136 136 136 136 136 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 480 MB
+--------------------
+Run 9:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/hugetrace-00000.mtx
+
+Vertices: 4588484
+Edges: 13758266
+Maximum Degree: 3
+Average Degree: 2
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 0.558176
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 268 MB
+--------------------
+Run 10:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/channel-500x100x100-b050.mtx
+
+Vertices: 4802000
+Edges: 85362744
+Maximum Degree: 18
+Average Degree: 17
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 41.9789
+First 40 values of TC: 12 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 12 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 21 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 37 GB
+Consumed Memory: 1364 MB
+--------------------
+Run 11:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n23.mtx
+
+Vertices: 8388608
+Edges: 50331568
+Maximum Degree: 28
+Average Degree: 5
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 3.85584
+First 40 values of TC: 5 8 7 6 5 7 8 7 7 6 5 6 5 6 7 7 7 5 5 7 8 5 6 7 10 5 4 5 6 6 9 5 7 6 4 5 6 4 4 5 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 5 8 7 6 5 7 8 7 7 6 5 6 5 6 7 7 7 5 5 7 8 5 6 7 10 5 4 5 6 6 9 5 7 6 4 5 6 4 4 5 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 868 MB
+--------------------
+Run 12:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/hugetrace-00020.mtx
+
+Vertices: 16002413
+Edges: 47997626
+Maximum Degree: 3
+Average Degree: 2
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 2.86278
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 924 MB
+--------------------
+Run 13:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/delaunay_n24.mtx
+
+Vertices: 16777216
+Edges: 100663202
+Maximum Degree: 26
+Average Degree: 5
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 7.41603
+First 40 values of TC: 7 5 8 7 7 8 3 3 5 8 4 5 8 6 6 4 5 5 6 6 6 4 7 4 5 6 7 6 6 4 3 6 7 4 9 8 6 8 6 4 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 7 5 8 7 7 8 3 3 5 8 4 5 8 6 6 4 5 5 6 6 6 4 7 4 5 6 7 6 6 4 3 6 7 4 9 8 6 8 6 4 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 37 GB
+Consumed Memory: 1732 MB
+--------------------
+Run 14:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/rgg_n_2_24_s0.mtx
+
+Vertices: 16777216
+Edges: 265114400
+Maximum Degree: 40
+Average Degree: 15
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 63.0662
+First 40 values of TC: 14 6 17 9 74 16 39 3 29 2 9 17 51 20 3 49 8 32 39 33 21 13 28 37 21 22 13 10 39 16 22 12 26 24 35 15 43 16 15 20 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 14 6 17 9 74 16 39 3 29 2 9 17 51 20 3 49 8 32 39 33 21 13 28 37 21 22 13 10 39 16 22 12 26 24 35 15 43 16 15 20 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 34 GB
+Consumed Memory: 4244 MB
+--------------------
+Run 15:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-road_usa.mtx
+
+Vertices: 23947347
+Edges: 57708624
+Maximum Degree: 9
+Average Degree: 2
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 2.52115
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Incorrect Result!
+Final Free Memory: 37 GB
+Consumed Memory: 1162 MB
+--------------------
+Run 16:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/nlpkkt240.mtx
+
+Vertices: 27993600
+Edges: 802465952
+Maximum Degree: 29
+Average Degree: 28
+
+Duplicates: 27993600
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 1790.08
+First 40 values of TC: 10 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 14 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Incorrect Result!
+Final Free Memory: 26 GB
+Consumed Memory: 12572 MB
+--------------------
+Run 17:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+10. Triangle Counting Edge Centric
+11. Triangle Counting Sorted Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/inf-europe_osm.mtx
+
+Vertices: 50912018
+Edges: 108109320
+Maximum Degree: 13
+Average Degree: 2
+
+Duplicates: 0
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching Sorted Vertex Centric TC Kernel
+Finished Kernel
+Total Time: 3.75229
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Checking Correctness with Gunrock...
+
+First 40 values of TC: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 36 GB
+Consumed Memory: 2240 MB
+--------------------

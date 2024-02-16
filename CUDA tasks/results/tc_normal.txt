@@ -1,0 +1,86 @@
+Run 1:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/chesapeake.mtx
+
+Vertices: 39
+Edges: 340
+Maximum Degree: 33
+Average Degree: 8
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching TC Kernel
+Total Time: 0.980992
+First 40 values of TC: 22 31 10 2 2 4 26 31 15 7 12 16 10 12 14 6 4 14 14 2 5 31 20 2 6 9 15 7 6 10 7 12 12 1 36 56 2 20 71 0 
+
+Checking Correctness with Gunrock...
+First 40 values of TC: 22 31 10 2 2 4 26 31 15 7 12 16 10 12 14 6 4 14 14 2 5 31 20 2 6 9 15 7 6 10 7 12 12 1 36 56 2 20 71 0 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 2 MB
+--------------------
+Run 2:
+Do you want the edge list to be in sorted order? Enter 1 for Yes or 0 for No: 
+Choose input file: 
+ 1. chesapeake               2. rgg_n_2_16_s0             3. kron_g500-logn16         4. inf-luxembourg_osm       5. delaunay_n17
+ 6. co-papers-citeseer       7. co-papers-dblp            8. kron_g500-logn21         9. hugetrace-00000         10. channel-500x100x100-b050
+11. delaunay_n23            12. hugetrace-00020          13. delaunay_n24            14. rgg_n_2_24_s0           15. inf-road_usa
+16. nlpkkt240               17. inf-europe_osm
+
+Enter Your Choice: 
+What do you want to compute?
+1. Vertex-Based SSSP
+2. Edge-Based SSSP
+3. Worklist-Based SSSP
+4. Even Odd Thread Distributed Worklist Based SSSP
+5. Balanced Worklist Based SSSP
+6. Edge Centric Worklist Based SSSP
+7. Bucket Based Worklist SSSP
+8. Bucket Based Extended Worklist SSSP
+9. Triangle Counting Vertex Centric
+
+Enter Your Choice: 
+Graph: ../../Graphs/rgg_n_2_16_s0.mtx
+
+Vertices: 65536
+Edges: 684254
+Maximum Degree: 27
+Average Degree: 10
+Initial Free Memory: 38 GB
+
+Graph Built
+
+
+Launching TC Kernel
+Total Time: 1.30781
+First 40 values of TC: 2 6 55 2 13 42 20 1 8 25 21 25 1 15 3 0 16 31 10 48 2 3 48 26 2 22 10 4 8 3 1 1 13 10 10 25 6 2 5 36 
+
+Checking Correctness with Gunrock...
+First 40 values of TC: 2 6 55 2 13 42 20 1 8 25 21 25 1 15 3 0 16 31 10 48 2 3 48 26 2 22 10 4 8 3 1 1 13 10 10 25 6 2 5 36 
+
+Correctness Verified with SlabGraph!
+Final Free Memory: 38 GB
+Consumed Memory: 14 MB
+--------------------
