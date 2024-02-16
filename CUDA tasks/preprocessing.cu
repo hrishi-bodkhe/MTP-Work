@@ -147,13 +147,15 @@ int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename,
     cout << "7. Bucket Based Worklist SSSP" << endl;
     cout << "8. Bucket Based Extended Worklist SSSP" << endl;   // Not Working
     cout << "9. Triangle Counting Vertex Centric" << endl;
+    cout << "10. Triangle Counting Edge Centric" << endl;
+    cout << "11. Triangle Counting Sorted Vertex Centric" << endl;
     cout << endl;
 
     cout << "Enter Your Choice: ";
 
     cin >> algoChoice;
 
-    if(algoChoice == 9) filenameforCorrection = "../Gunrockresults/TC/" + filenameforCorrection + ".txt";
+    if(algoChoice >= 9 && algoChoice <= 11) filenameforCorrection = "../Gunrockresults/TC/" + filenameforCorrection + ".txt";
     else filenameforCorrection = "../Gunrockresults/SSSP/" + filenameforCorrection + ".txt";
 
     cout << endl;
@@ -204,13 +206,13 @@ void printCSR(ll &vertices, ll *index, ll *headvertex, ll *weights, ll &edges, l
 
     cout << "Index: ";
     for(int i = 0; i < vertices + 1; ++i)
-        if(index[i] == 4912796) cout << i << ' ';
+        cout << index[i] << ' ';
     cout << endl;
 
-//    cout << "Head Vertex: ";
-//    for (int i = 0; i < edges; ++i)
-//        cout << headvertex[i] << ' ';
-//    cout << endl;
+    cout << "Head Vertex: ";
+    for (int i = 0; i < edges; ++i)
+        cout << headvertex[i] << ' ';
+    cout << endl;
 //
 //    cout << "Weights: ";
 //    for (int i = 0; i < edges; ++i)
@@ -1593,6 +1595,70 @@ void buildCSR(ll vertices, ll edges, vector<Edge>& edgelist, ll *index, ll *head
     for(ll u = 1; u < vertices + 1; ++u) index[u] += index[u - 1];
 }
 
+void checkTCCorrectnessWithSlabGraph(unsigned int *wdist, string &filename){
+    // Source Vertex should be 0
+    if(filename == "../Gunrockresults/SSSP/nlpkkt240.txt") {
+        cout << "Results are not available." << endl;
+        return;
+    }
+
+    unsigned int *vdist;
+    cudaMalloc(&vdist, (40) * sizeof (unsigned int));
+
+    ifstream file(filename); // replace with your file name
+    string line;
+    vector<ll> numbers;
+
+    if (file.is_open()) {
+        if (getline(file, line)) {
+            istringstream iss(line);
+            int num;
+            while (iss >> num) {
+                numbers.push_back(num);
+            }
+        }
+        file.close();
+    }
+
+    unsigned int vectorsize = numbers.size();
+
+    unsigned int *temp;
+    temp = (unsigned int *) malloc(vectorsize * sizeof(unsigned int));
+
+    for(int i = 0; i < vectorsize; ++i){
+        temp[i] = numbers[i];
+    }
+
+    cout << endl;
+
+    cudaMemcpy(vdist, temp, (vectorsize) * sizeof(unsigned int), cudaMemcpyHostToDevice);
+    cudaDeviceSynchronize();
+
+    int *hequalityFlag;
+    int *dequalityFlag;
+
+    hequalityFlag = (int *)malloc(sizeof(int));
+    cudaMalloc(&dequalityFlag, sizeof(int));
+
+    *hequalityFlag = 1;
+    cudaMemcpy(dequalityFlag, hequalityFlag, sizeof(int), cudaMemcpyHostToDevice);
+
+    unsigned int nodeblocks = ceil((double)vectorsize / (double)BLOCKSIZE);
+
+    checkCorrectness<<<nodeblocks, BLOCKSIZE>>>(vectorsize, vdist, wdist, dequalityFlag);
+    cudaDeviceSynchronize();
+
+    cout << "First 40 values of TC: ";
+    printTC<<<1,1>>>(vectorsize, vdist);
+    cudaDeviceSynchronize();
+
+    cout << endl;
+
+    cudaMemcpy(hequalityFlag, dequalityFlag, sizeof(int), cudaMemcpyDeviceToHost);
+    if(*hequalityFlag == 1) cout << "Correctness Verified with SlabGraph!" << endl;
+    else cout << "Incorrect Result!" << endl;
+}
+
 void checkSSSPCorrectnessWithSlabGraph(ll *wdist, string &filename){
     // Source Vertex should be 0
     if(filename == "../Gunrockresults/SSSP/nlpkkt240.txt") {
@@ -1696,6 +1762,8 @@ void triangleCount(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edg
     totalTime += time;
     cudaDeviceSynchronize();
 
+    cout << "Finished Kernel" << endl;
+
 //    cout << "Triangle Count: " << *host_tc << endl;
     cout << "Total Time: " << totalTime << endl;
     cout << "First 40 values of TC: ";
@@ -1705,4 +1773,90 @@ void triangleCount(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edg
 
     cout << "Checking Correctness with Gunrock..." << endl;
     checkSSSPCorrectnessWithSlabGraph(device_tc_array, filenameforCorrection);
+}
+
+void triangleCountEdgeCentric(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges,  string &filenameforCorrection){
+    // Timing Calculations
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
+    unsigned int *device_tc_array;
+    cudaMalloc(&device_tc_array, (totalvertices) * sizeof(unsigned int));
+
+    unsigned blocks = ceil((double) totaledges / BLOCKSIZE);
+
+    cout << endl;
+    cout << "Launching Edge Centric TC Kernel" << endl;
+
+    // Kernel for TC
+    time = 0.0;
+    cudaEventRecord(start);
+    triangleCountEdgeCentricKernel<<<blocks, BLOCKSIZE>>>(csr_offsets, csr_edges, device_tc_array, totaledges, totalvertices);
+    cudaDeviceSynchronize();
+
+    blocks = ceil((double) totalvertices / BLOCKSIZE);
+    divideTCArray<<<blocks, BLOCKSIZE>>>(device_tc_array, 2, totalvertices);
+    cudaDeviceSynchronize();
+
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+    cudaDeviceSynchronize();
+
+    cout << "Finished Kernel" << endl;
+
+    cout << "Total Time: " << totalTime << endl;
+    cout << "First 40 values of TC: ";
+    printTC<<<1,1>>>(totalvertices, device_tc_array);
+    cudaDeviceSynchronize();
+    cout << endl;
+
+    cout << "Checking Correctness with Gunrock..." << endl;
+    checkTCCorrectnessWithSlabGraph(device_tc_array, filenameforCorrection);
+}
+
+void triangleCountSortedVertexCentric(ll totalvertices, ll *csr_offsets, ll *csr_edges,  string &filenameforCorrection){
+    // Timing Calculations
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
+    unsigned int *device_tc_array;
+    cudaMalloc(&device_tc_array, (totalvertices) * sizeof(unsigned int));
+
+    unsigned blocks = ceil((double) totalvertices / BLOCKSIZE);
+
+    cout << endl;
+    cout << "Launching Sorted Vertex Centric TC Kernel" << endl;
+
+    // Kernel for TC
+    time = 0.0;
+    cudaEventRecord(start);
+    triangleCountSortedVertexCentricKernel<<<blocks, BLOCKSIZE>>>(csr_offsets, csr_edges, device_tc_array, totalvertices);
+    cudaDeviceSynchronize();
+
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+    cudaDeviceSynchronize();
+
+    cout << "Finished Kernel" << endl;
+
+    cout << "Total Time: " << totalTime << endl;
+    cout << "First 40 values of TC: ";
+    printTC<<<1,1>>>(totalvertices, device_tc_array);
+    cudaDeviceSynchronize();
+    cout << endl;
+
+    cout << "Checking Correctness with Gunrock..." << endl;
+    checkTCCorrectnessWithSlabGraph(device_tc_array, filenameforCorrection);
 }

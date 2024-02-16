@@ -6,6 +6,8 @@ __global__ void divideTCbysix(float *tc);
 
 __global__ void triangleCountVertexCentric(ll *csr_offsets, ll *csr_edges, ll totalvertices, ll* tc);
 
+__global__ void triangleCountSortedVertexCentricKernel(ll *csr_offsets, ll *csr_edges, unsigned int *tc, ll totalvertices);
+
 __global__ void print2(int n, ll *arr);
 
 __global__ void print(float *n, ll *arr);
@@ -51,5 +53,13 @@ __global__ void printDist(ll vertices, ll *dist);
 __global__ void printCSRKernel(ll vertices, ll *index);
 
 __global__ void checkCorrectness(ll totalVertices, ll *vdist, ll *wdist, int *equalityFlag);
+
+__global__ void checkCorrectness(ll totalVertices, unsigned int *vdist, unsigned int *wdist, int *equalityFlag);
+
+__global__ void triangleCountEdgeCentricKernel(ll *csr_offsets, ll *csr_edges, unsigned int *tc, ll totaledges, ll totalvertices);
+
+__global__ void divideTCArray(unsigned int *tc, unsigned int val, ll totalvertices);
+
+__global__ void printTC(ll totalvertices, unsigned int *tc);
 
 #endif

@@ -1,6 +1,106 @@
 #include<cuda_runtime.h>
 #include "kernels.h"
 
+__global__ void divideTCArray(unsigned int *tc, unsigned int val, ll totalvertices){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= totalvertices) return;
+
+    tc[id] = tc[id] / val;
+}
+
+__global__ void triangleCountSortedVertexCentricKernel(ll *csr_offsets, ll *csr_edges, unsigned int *tc, ll totalvertices){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= totalvertices) return;
+
+    ll src_vertex = id;
+
+    ll neighbor_start_for_src = csr_offsets[src_vertex];
+    ll neighbor_end_for_src = csr_offsets[src_vertex + 1];
+
+    for(int k = neighbor_start_for_src; k < neighbor_end_for_src; ++k){
+        ll dest_vertex = csr_edges[k];
+        ll neighbor_start_for_dest = csr_offsets[dest_vertex];
+        ll neighbor_end_for_dest = csr_offsets[dest_vertex + 1];
+
+        ll i = neighbor_start_for_src;
+        ll j = neighbor_start_for_dest;
+
+        unsigned int count = 0;
+
+        while(i < neighbor_end_for_src && j < neighbor_end_for_dest){
+            ll diff = csr_edges[i] - csr_edges[j];
+
+            if(diff == 0){
+                ++count;
+                ++i;
+                ++j;
+            }
+            else if(diff < 0) ++i;
+            else ++j;
+        }
+
+        tc[src_vertex] += count;
+    }
+
+    tc[src_vertex] /= 2;
+}
+
+__global__ void triangleCountEdgeCentricKernel(ll *csr_offsets, ll *csr_edges, unsigned int *tc, ll totaledges, ll totalvertices){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= totaledges) return;
+
+    ll dest_vertex = csr_edges[id];
+
+    ll src_vertex = -1;
+    // Applying Binary Search to find the source offset for the respective thread.
+    ll start = 0;
+    ll end = totalvertices - 1;
+
+    while(start <= end){
+        ll mid = start + (end - start) / 2;
+        if(csr_offsets[mid] == id){
+            src_vertex = mid;
+            break;
+        }
+        else if(csr_offsets[mid] < id) {
+            src_vertex = mid;
+            start = mid + 1;
+        }
+        else {
+            end = mid - 1;
+        }
+    }
+
+    // Find common nodes between src and dest
+
+    ll neighbor_start_for_src = csr_offsets[src_vertex];
+    ll neighbor_end_for_src = csr_offsets[src_vertex + 1];
+    ll neighbor_start_for_dest = csr_offsets[dest_vertex];
+    ll neighbor_end_for_dest = csr_offsets[dest_vertex + 1];
+
+    ll i = neighbor_start_for_src;
+    ll j = neighbor_start_for_dest;
+
+    unsigned int count = 0;
+
+    while(i < neighbor_end_for_src && j < neighbor_end_for_dest){
+        ll diff = csr_edges[i] - csr_edges[j];
+
+        if(diff == 0){
+            ++count;
+            ++i;
+            ++j;
+        }
+        else if(diff < 0) ++i;
+        else ++j;
+    }
+
+    atomicAdd(&tc[src_vertex], count);
+}
+
 __global__ void divideTCbysix(float *tc){
     *tc = *tc / 6;
 }
@@ -17,7 +117,7 @@ __global__ void triangleCountVertexCentric(ll *csr_offsets, ll *csr_edges, ll to
     for(ll s = start_p; s < end_p; ++s){
         ll vertex_t = csr_edges[s];
 
-        for(ll i = start_p; i < end_p; ++i){
+        for(ll i = s + 1; i < end_p; ++i){
             ll vertex_r = csr_edges[i];
 
             if(vertex_t != vertex_r){
@@ -34,7 +134,7 @@ __global__ void triangleCountVertexCentric(ll *csr_offsets, ll *csr_edges, ll to
         }
     }
 
-    tc[vertex_p] /= 2;
+//    tc[vertex_p] /= 2;
 }
 
 __global__ void ssspBucketWorklistKernel(ll workers, ll *csr_offsets, ll *csr_edges, ll *csr_weights, ll *curr, ll *next1, ll *next2, ll *dist, float *idx1, float *idx2){
@@ -244,6 +344,16 @@ if(index2 >= totalvertices){
     }
 }
 
+__global__ void checkCorrectness(ll totalVertices, unsigned int *vdist, unsigned int *wdist, int *equalityFlag){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= totalVertices) return;
+
+    if(vdist[id] != wdist[id]) {
+        *equalityFlag = 0;
+    }
+}
+
 __global__ void checkCorrectness(ll totalVertices, ll *vdist, ll *wdist, int *equalityFlag){
     unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -430,4 +540,9 @@ __global__ void printCSRKernel(ll vertices, ll *index){
     for(ll u = 0; u < vertices + 1; ++u){
         printf("%lld ", index[u]);
     }
+}
+
+__global__ void printTC(ll totalvertices, unsigned int *tc){
+    for(long u = 0; u < 40; ++u) printf("%u ", tc[u]);
+    printf("\n");
 }

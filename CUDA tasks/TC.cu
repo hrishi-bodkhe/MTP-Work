@@ -25,7 +25,7 @@ int main(){
     ll maxDegree = INT_MIN;
     ll avgDegree = 0;
 
-
+//    filename = "input.txt";
     ifstream file(filename);
 
     file.is_open();
@@ -95,6 +95,19 @@ int main(){
 
     if(sortedOption) sort(edgeList.begin(), edgeList.end(), comp_Edges_and_dest);
 
+    ll duplicates = 0;
+    for(ll i = 0; i < edgeList.size() - 1; ++i){
+        Edge e1 = edgeList[i];
+        Edge e2 = edgeList[i + 1];
+
+        if(e1.src == e2.src && e1.dest == e2.dest){
+            ++duplicates;
+//            cout << "Duplicate Found" << endl;
+        }
+    }
+
+    cout << endl << "Duplicates: " << duplicates << endl;
+
     ll *hindex;
     ll *hheadvertex;
     ll *hweights;
@@ -125,7 +138,19 @@ int main(){
     cout << "Graph Built" << endl;
     cout << endl;
 
+//    cout << "Index: ";
+//    for(int i = 0; i < totalVertices + 1; ++i)
+//        cout << hindex[i] << ' ';
+//    cout << endl;
+//
+//    cout << "Head Vertex: ";
+//    for (int i = 0; i < totalEdges; ++i)
+//        cout << hheadvertex[i] << ' ';
+//    cout << endl;
+
     if(algoChoice == 9) triangleCount(totalVertices, totalEdges, dindex, dheadVertex, filenameforCorrection);
+    else if(algoChoice == 10) triangleCountEdgeCentric(totalVertices, totalEdges, dindex, dheadVertex, filenameforCorrection);
+    else if(algoChoice == 11) triangleCountSortedVertexCentric(totalVertices, dindex, dheadVertex, filenameforCorrection);
 
     size_t finalFreeMemory;
     cudaMemGetInfo(&finalFreeMemory, &totalMemory);
