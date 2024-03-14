@@ -22,13 +22,13 @@
 #define EDGE_BLOCK_SIZE 2
 #define VERTEX_PREALLOCATE_LIST_SIZE 2000
 #define EDGE_PREALLOCATE_LIST_SIZE 100000000
-#define BATCH_SIZE 21
-// #define BATCH_SIZE 100000
+//#define BATCH_SIZE 21
+// #define BATCH_SIZE 239332
 
 // #define BATCH_SIZE 340
 // #define BATCH_SIZE 30491458
 // #define BATCH_SIZE 32073440
-// #define BATCH_SIZE 47997626
+ #define BATCH_SIZE 47997626
 // #define BATCH_SIZE 85362744
 // #define BATCH_SIZE 100663202
 // #define BATCH_SIZE 108109320
@@ -51,6 +51,15 @@
 
 // Inserts
 // -> Vertices => 1 thread per vertex block
+
+#define CUDA_CHECK_ERROR() \
+    do { \
+        cudaError_t err = cudaGetLastError(); \
+        if (err != cudaSuccess) { \
+            printf("CUDA error: %s at line %d in file %s\n", cudaGetErrorString(err), __LINE__, __FILE__); \
+            exit(err); \
+        } \
+    } while(0)
 
 struct graph_properties {
 
@@ -8182,8 +8191,11 @@ void memory_usage() {
 __global__ void compactionVertexCentric(unsigned long totalvertices, struct vertex_dictionary_structure *device_vertex_dictionary){
     unsigned long id = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if(id >= totalvertices) return;
-//    if(id != 2) return;
+    if(id <= totalvertices) return;
+//    printf("%ld\n", totalvertices);
+
+//    printf("start FOR VERTEX %lu\n", id);
+
 
     struct edge_block *curr = device_vertex_dictionary->edge_block_address[id];
     struct edge_block *root = device_vertex_dictionary->edge_block_address[id];
@@ -8192,30 +8204,31 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
     struct edge_block *parent = NULL;
     unsigned int push_index_for_edge_queue;
 
-//    if(id == 2) printf("%p\n", curr);
-//    if(id == 2) printf("%p\n", root);
+//    printf("%p\n", curr);
+//    printf("%p\n", root);
 
     if(!curr) return;
 
     struct edge_block *swapping_block = device_vertex_dictionary->last_insert_edge_block[id];
-//    if(id == 2) printf("%p\n", swapping_block);
+//    printf("%p\n", swapping_block);
 
     unsigned long total_edge_blocks = device_vertex_dictionary->edge_block_count[id];
-//    if(id == 2) printf("%lu\n", total_edge_blocks);
+//    printf("%lu\n", total_edge_blocks);
 
     long curr_edge_block_index = 0;
     long last_edge_block_index = total_edge_blocks - 1;
     long last_swap_offset = device_vertex_dictionary->last_insert_edge_offset[id];
+//    printf("For %lu last swap offset is: %ld\n", id, last_swap_offset);
     --last_swap_offset;
 
-//    if(id == 2) printf("%ld\n", curr_edge_block_index);
-//    if(id == 2) printf("%ld\n", last_edge_block_index);
-//    if(id == 2) printf("%ld\n", last_swap_offset);
+//    if(id == 0) printf("%ld\n", curr_edge_block_index);
+//    if(id == 0) printf("%ld\n", last_edge_block_index);
+//    if(id == 0) printf("%ld\n", last_swap_offset);
 
 
     while(curr_edge_block_index < last_edge_block_index){
-//        if(id == 38) printf("current edge block index for vertex %lu: %lu\n", id, curr_edge_block_index);
-//        if(id == 38) printf("last edge block index for vertex %lu: %lu\n", id, last_edge_block_index);
+//        if(id == 0) printf("current edge block index for vertex %lu: %lu\n", id, curr_edge_block_index);
+//        if(id == 0) printf("last edge block index for vertex %lu: %lu\n", id, last_edge_block_index);
 
         for(unsigned long i = 0; i < EDGE_BLOCK_SIZE; ++i){
              unsigned long e = (curr->edge_block_entry[i]).destination_vertex;
@@ -8228,9 +8241,10 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
              int edge_swapped_flag = 0;
 
              while(edge_swapped_flag == 0){
+//                 printf("here FOR VERTEX %lu\n", id);
                  if(curr_edge_block_index == last_edge_block_index) break;
 //                 printf("here for vertex %lu\n", id);
-//                 if(id == 38) {
+//                 if(id == 0) {
 //                     printf("%ld\n", last_swap_offset);
 //                     break;
 //                 }
@@ -8239,6 +8253,7 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
                  if(last_swap_offset == -1){
 //                     printf("here for %lu\n", id);
                      push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+//                     if(d_e_queue.rear >= EDGE_PREALLOCATE_LIST_SIZE) printf("%ld\n", id);
                      push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
                      d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
                      swapping_block->lptr = NULL;
@@ -8348,14 +8363,14 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
         bitString = bit_string_lookup[curr_edge_block_index];
         curr = traverse_bit_string(root, bitString);
     }
-
+//    printf("Reached out of the while loop\n");
     if(curr_edge_block_index == last_edge_block_index){
 //        printf("%lu\n", curr_edge_block_index);
 //        printf("here for vertex %lu\n", id);
         last_swap_offset = EDGE_BLOCK_SIZE - 1;
 
 //        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
-        while(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
+        while(last_swap_offset > 0 && curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
             if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
                 device_vertex_dictionary->active_edge_count[id] -= 1;
                 curr->active_edge_count -= 1;
@@ -8387,6 +8402,7 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
 
     curr->lptr = NULL;
     curr->rptr = NULL;
+//    printf("here2 FOR VERTEX %lu\n", id);
 
     if(curr->active_edge_count == 0){
         push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
@@ -8395,8 +8411,9 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
         device_vertex_dictionary->last_insert_edge_block[id] = curr->level_order_predecessor;
         device_vertex_dictionary->last_insert_edge_offset[id] = EDGE_BLOCK_SIZE - 1;
         device_vertex_dictionary->edge_block_count[id] -= 1;
-
+//        printf("here3 FOR VERTEX %lu\n", id);
         if(curr == root){
+//            printf("here4 FOR VERTEX %lu\n", id);
             curr->level_order_predecessor = NULL;
             device_vertex_dictionary->edge_block_address[id] = NULL;
             device_vertex_dictionary->active_edge_count[id] = 0;
@@ -8406,7 +8423,7 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
         }
     }
 
-//    printf("here for vertex %lu\n", id);
+//    printf("IN THE KERNEL FOR VERTEX %lu\n", id);
 }
 
 __device__ void removeParentChildLinkage(struct edge_block *node){
@@ -8569,7 +8586,7 @@ __global__ void compactionVertexCentricPostOrder(unsigned long totalvertices, st
         last_swap_offset = EDGE_BLOCK_SIZE - 1;
 
 //        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
-        while(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
+        while(last_swap_offset > 0 && curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
             if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
                 device_vertex_dictionary->active_edge_count[id] -= 1;
                 curr->active_edge_count -= 1;
@@ -8804,7 +8821,7 @@ __global__ void compactionWithStack(unsigned long totalvertices, struct vertex_d
         last_swap_offset = EDGE_BLOCK_SIZE - 1;
 
 //        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
-        while(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
+        while(last_swap_offset > 0 && curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
             if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
                 device_vertex_dictionary->active_edge_count[id] -= 1;
                 curr->active_edge_count -= 1;
@@ -8894,18 +8911,38 @@ __global__ void printedgeblockcount(unsigned int totalvertices, unsigned int *ed
     printf("\n");
 }
 
+__device__ void preorderTraversalForBulkDeletion(struct edge_block *root){
+    if(!root) return;
+
+    for(unsigned long j = 0 ; j < root->active_edge_count ; j++)
+        root->edge_block_entry[j].destination_vertex = INFTY;
+
+    preorderTraversalForBulkDeletion(root->lptr);
+    preorderTraversalForBulkDeletion(root->rptr);
+}
+
+__global__ void bulkDeletion(struct vertex_dictionary_structure *device_vertex_dictionary, unsigned long totalvertices){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+    if(id >= totalvertices) return;
+
+    if((device_vertex_dictionary->edge_block_address[id] != NULL) && (device_vertex_dictionary->vertex_id[id] != 0)) {
+        preorderTraversalForBulkDeletion(device_vertex_dictionary->edge_block_address[id]);
+    }
+}
+
 int main(void) {
 
-    char fileLoc[20] = "../../input.mtx";
+//    char fileLoc[20] = "../../input.mtx";
     // char fileLoc[20] = "input1.mtx";
+//     char fileLoc[40] = "../../Graphs/bio-pdb1HYS.mtx";
     // char fileLoc[20] = "inputSSSP.mtx";
 //     char fileLoc[20] = "chesapeake.mtx";
     // char fileLoc[30] = "klein-b1.mtx";
 //     char fileLoc[30] = "../../Graphs/chesapeake.mtx";
     // char fileLoc[30] = "bio-celegansneural.mtx";
-    // char fileLoc[30] = "inf-luxembourg_osm.mtx";
+//     char fileLoc[40] = "../../Graphs/inf-luxembourg_osm.mtx";
     // char fileLoc[30] = "rgg_n_2_16_s0.mtx";
-    // char fileLoc[30] = "delaunay_n10.mtx";
+//     char fileLoc[30] = "../../Graphs/delaunay_n10.mtx";
     // char fileLoc[30] = "delaunay_n12.mtx";
     // char fileLoc[30] = "delaunay_n13.mtx";
     // char fileLoc[30] = "delaunay_n16.mtx";
@@ -8913,7 +8950,7 @@ int main(void) {
     // char fileLoc[30] = "fe-ocean.mtx";
 //     char fileLoc[40] = "../../Graphs/co-papers-dblp.mtx";
 //     char fileLoc[40] = "../../Graphs/co-papers-citeseer.mtx";
-//    char fileLoc[40] = "../../Graphs/hugetrace-00020.mtx";
+    char fileLoc[40] = "../../Graphs/hugetrace-00020.mtx";
 //      char fileLoc[50] = "../../Graphs/channel-500x100x100-b050.mtx";
 //     char fileLoc[30] = "../../Graphs/kron_g500-logn16.mtx";
     // char fileLoc[30] = "kron_g500-logn17.mtx";
@@ -9236,7 +9273,7 @@ int main(void) {
     // al_time = clock();
     al_time = 0;
 
-    std::cout << "Enter type of insertion required" << std::endl << "1. Regular batched edge insertion" << std::endl << "2. Edge Insert and Delete performance benchmark" << std::endl << "3. Vertex Insert and Delete performance benchmark" << std::endl;
+    std::cout << "Enter type of insertion required" << std::endl << "1. Regular batched edge insertion" << std::endl << "2. Edge Insert and Delete performance benchmark" << std::endl << "3. Vertex Insert and Delete performance benchmark" << std::endl << "4. Compaction Test" << std::endl;
     std::cin >> choice;
 
 //    std::cout << "Printing the queue ptrs: " << std::endl;
@@ -9472,7 +9509,78 @@ int main(void) {
         cudaDeviceSynchronize();
         delete_time = 0;
     }
+    else if(choice == 4){
+        for(unsigned long i = 0 ; i < 1 ; i++) {
+            std::cout << std::endl << "STARTING INITIAL BULK BUILD" << std::endl;
+            std::cout << std::endl << "Iteration " << i << std::endl;
+            total_edge_blocks_count_batch = 0;
+            generate_csr_batch(vertex_size, edge_size, max_degree, h_source, h_destination, h_csr_offset_new, h_csr_edges_new, h_source_degrees_new, h_edge_blocks_count, h_prefix_sum_edge_blocks_new, h_batch_update_data, edge_size, total_batches, i, space_remaining, &total_edge_blocks_count_batch, &init_time);
 
+            thrust::copy(h_source_degrees_new.begin(), h_source_degrees_new.end(), d_source_degrees_new.begin());
+            thrust::copy(h_csr_offset_new.begin(), h_csr_offset_new.end(), d_csr_offset_new.begin());
+            thrust::copy(h_csr_edges_new.begin(), h_csr_edges_new.end(), d_csr_edges_new.begin());
+            thrust::copy(h_edge_blocks_count.begin(), h_edge_blocks_count.end(), d_edge_blocks_count.begin());
+            thrust::copy(h_prefix_sum_edge_blocks_new.begin(), h_prefix_sum_edge_blocks_new.end(), d_prefix_sum_edge_blocks_new.begin());
+
+            temp_time = clock();
+            cudaMemcpy(d_batch_update_data, h_batch_update_data, (batch_size) * sizeof(unsigned long), cudaMemcpyHostToDevice);
+
+            unsigned long start_index = i * batch_size;
+            unsigned long end_index;
+
+            unsigned long remaining_edges = edge_size - start_index;
+
+            if(remaining_edges <= batch_size)
+                end_index = edge_size;
+            else
+                end_index = (i + 1) * batch_size;
+
+            unsigned long current_batch = end_index - start_index;
+
+            thread_blocks = ceil(double(h_graph_prop->xDim) / THREADS_PER_BLOCK);
+            adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, i, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer);
+            update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
+
+            cudaDeviceSynchronize();
+            memory_usage();
+            temp_time = clock() - temp_time;
+            al_time += temp_time;
+            cudaDeviceSynchronize();
+
+            std::cout << std::endl << "INITIAL BULK BUILD DONE!" << std::endl;
+//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+            std::cout << std::endl << "INITIAL BULK BUILD DONE!" << std::endl;
+
+            std::cout << std::endl << "STARTING BULK DELETION!" << std::endl;
+            bulkDeletion<<<thread_blocks, THREADS_PER_BLOCK>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+            std::cout << std::endl << "BULK DELETION DONE!" << std::endl;
+//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+            std::cout << std::endl << "BULK DELETION DONE!" << std::endl;
+
+            std::cout << std::endl << "STARTING COMPACTION!" << std::endl;
+            thread_blocks = ceil(double(h_graph_prop->xDim) / THREADS_PER_BLOCK);
+            compactionVertexCentric<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary);
+            cudaDeviceSynchronize();
+            CUDA_CHECK_ERROR();
+            std::cout << std::endl << "COMPACTION DONE!" << std::endl;
+//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+            std::cout << std::endl << "COMPACTION DONE!" << std::endl;
+
+            std::cout << std::endl << "STARTING 2nd BULK BUILD" << std::endl;
+            adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, i, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer);
+            update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
+            cudaDeviceSynchronize();
+
+            std::cout << std::endl << "2nd BULK BUILD DONE!" << std::endl;
+//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+            std::cout << std::endl << "2nd BULK BUILD DONE!" << std::endl;
+        }
+    }
     else {
         std::cout << "here" << std::endl;
         for(unsigned long i = 0 ; i < 1 ; i++) {
@@ -9590,8 +9698,8 @@ int main(void) {
             // batched_edge_inserts_v6<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, i, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer, d_source_vector_pointer);
 
             // update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
-//            cudaDeviceSynchronize();
+            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
             temp_time = clock() - temp_time;
             init_time += temp_time;
             // test code for actual benchmark end
@@ -9774,7 +9882,7 @@ int main(void) {
 
             adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, kk, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer);
             update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
 
             // thread_blocks = ceil(double(vertex_size) / THREADS_PER_BLOCK);
             // batched_edge_inserts_preprocessing_v6<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, i, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer, d_source_vector_pointer);
@@ -9991,8 +10099,8 @@ int main(void) {
             cudaDeviceSynchronize();
             std::cout << std::endl;
 
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
-//            cudaDeviceSynchronize();
+            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
 
             unsigned int *device_total_edge_blocks;
             cudaMalloc(&device_total_edge_blocks, sizeof(unsigned int));
@@ -10009,8 +10117,8 @@ int main(void) {
             struct edge_block **compaction_stack;
             cudaMalloc(&compaction_stack, (*host_total_edge_blocks * ((unsigned int) sizeof(struct edge_block))));
 
-//            printedgeblockcount<<<1,1>>>(vertex_size, edge_block_count_per_vertex);
-//            cudaDeviceSynchronize();
+            printedgeblockcount<<<1,1>>>(vertex_size, edge_block_count_per_vertex);
+            cudaDeviceSynchronize();
 
             std::cout << "total: " << *host_total_edge_blocks << std::endl;
 
@@ -10028,7 +10136,8 @@ int main(void) {
 
             compact_start = clock();
 //            compactionVertexCentricPostOrder<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary);
-            compactionWithStack<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, edge_block_count_per_vertex, compaction_stack);
+//            compactionWithStack<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, edge_block_count_per_vertex, compaction_stack);
+            compactionVertexCentric<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary);
             cudaDeviceSynchronize();
             compact_end = clock();
 
@@ -10041,8 +10150,8 @@ int main(void) {
             recoveredMemoryKernel2<<<1,1>>>(num_blocks_before, num_blocks_after);
             cudaDeviceSynchronize();
 
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
-//            cudaDeviceSynchronize();
+            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
 
             std::cout << "Total Time: " << compact_total_time << " ms" << std::endl;
         }
@@ -10983,6 +11092,7 @@ int main(void) {
 
     // std::cout << "Prefix sum, cudaMalloc, and cudaMemcpy: " << (float)section3/CLOCKS_PER_SEC << " seconds" << std::endl;
     // // Cleanup
+
     // cudaFree(d_a); cudaFree(d_b); cudaFree(d_c);
     // printf("%d\n", c);
     return 0;
