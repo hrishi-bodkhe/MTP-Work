@@ -7,7 +7,7 @@ RDC = true
 CXXFLAGS = -arch=$(ARCH) -rdc=$(RDC)
 
 # Source files
-SOURCES = preprocessing.cu kernels.cu TC.cu
+SOURCES = preprocessing.cu kernels.cu SSSP.cu
 
 # Header files
 HEADERS = preprocessing.h kernels.h
@@ -21,7 +21,7 @@ all: $(OUTPUT)
 #	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(OUTPUT)
 
 $(OUTPUT): $(SOURCES) $(HEADERS)
-	$(CXX) $(SOURCES) -o $(OUTPUT)
+	$(CXX) -g $(SOURCES) -o $(OUTPUT)
 
 clean:
 	rm -f $(OUTPUT)

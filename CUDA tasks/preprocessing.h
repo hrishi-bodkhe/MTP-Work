@@ -27,6 +27,12 @@ typedef struct Node
     struct Node *next;
 } Node;
 
+struct compareForDuplicateRemoval {
+    bool operator() (const Edge& e1, const Edge& e2) const {
+        return e1.src < e2.src || (e1.src == e2.src && e1.dest < e2.dest);
+    }
+};
+
 int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename, int& sortedOption, string& filenameforCorrection);
 
 void readFile(string path, vector<Edge> &edgeList, ll &vertices, ll &edges, int &directed, int &weighted);
@@ -92,5 +98,7 @@ void triangleCount(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edg
 void triangleCountEdgeCentric(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges,  string &filenameforCorrection);
 
 void triangleCountSortedVertexCentric(ll totalvertices, ll *csr_offsets, ll *csr_edges,  string &filenameforCorrection);
+
+void triangleCountEdgeCentricCOO(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges, ll *coo_src, string &filenameforCorrection);
 
 #endif

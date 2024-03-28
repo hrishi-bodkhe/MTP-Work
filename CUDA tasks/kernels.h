@@ -58,6 +58,8 @@ __global__ void checkCorrectness(ll totalVertices, unsigned int *vdist, unsigned
 
 __global__ void triangleCountEdgeCentricKernel(ll *csr_offsets, ll *csr_edges, unsigned int *tc, ll totaledges, ll totalvertices);
 
+__global__ void triangleCountEdgeCentricKernelCOO(ll *csr_offsets, ll *csr_edges, ll *src_edges, unsigned int *tc, ll totaledges, ll totalvertices);
+
 __global__ void divideTCArray(unsigned int *tc, unsigned int val, ll totalvertices);
 
 __global__ void printTC(ll totalvertices, unsigned int *tc);

@@ -101,6 +101,42 @@ __global__ void triangleCountEdgeCentricKernel(ll *csr_offsets, ll *csr_edges, u
     atomicAdd(&tc[src_vertex], count);
 }
 
+__global__ void triangleCountEdgeCentricKernelCOO(ll *csr_offsets, ll *csr_edges, ll *src_edges, unsigned int *tc, ll totaledges, ll totalvertices){
+    unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= totaledges) return;
+
+    ll dest_vertex = csr_edges[id];
+
+    ll src_vertex = src_edges[id];
+
+    // Find common nodes between src and dest
+
+    ll neighbor_start_for_src = csr_offsets[src_vertex];
+    ll neighbor_end_for_src = csr_offsets[src_vertex + 1];
+    ll neighbor_start_for_dest = csr_offsets[dest_vertex];
+    ll neighbor_end_for_dest = csr_offsets[dest_vertex + 1];
+
+    ll i = neighbor_start_for_src;
+    ll j = neighbor_start_for_dest;
+
+    unsigned int count = 0;
+
+    while(i < neighbor_end_for_src && j < neighbor_end_for_dest){
+        ll diff = csr_edges[i] - csr_edges[j];
+
+        if(diff == 0){
+            ++count;
+            ++i;
+            ++j;
+        }
+        else if(diff < 0) ++i;
+        else ++j;
+    }
+
+    atomicAdd(&tc[src_vertex], count);
+}
+
 __global__ void divideTCbysix(float *tc){
     *tc = *tc / 6;
 }

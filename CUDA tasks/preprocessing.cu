@@ -6,6 +6,7 @@
 #include <thrust/scan.h>
 #include <thrust/execution_policy.h>
 
+
 // Function to create a new node
 Node *createNode(int v, int weighted, int wt)
 {
@@ -149,13 +150,14 @@ int takeChoices(int& directed, int& weighted, int& algoChoice, string& filename,
     cout << "9. Triangle Counting Vertex Centric" << endl;
     cout << "10. Triangle Counting Edge Centric" << endl;
     cout << "11. Triangle Counting Sorted Vertex Centric" << endl;
+    cout << "12. Triangle Counting Edge Centric COO" << endl;
     cout << endl;
 
     cout << "Enter Your Choice: ";
 
     cin >> algoChoice;
 
-    if(algoChoice >= 9 && algoChoice <= 11) filenameforCorrection = "../Gunrockresults/TC/" + filenameforCorrection + ".txt";
+    if(algoChoice >= 9 && algoChoice <= 12) filenameforCorrection = "../Gunrockresults/TC/" + filenameforCorrection + ".txt";
     else filenameforCorrection = "../Gunrockresults/SSSP/" + filenameforCorrection + ".txt";
 
     cout << endl;
@@ -1796,6 +1798,51 @@ void triangleCountEdgeCentric(ll totalvertices, ll totaledges, ll *csr_offsets, 
     time = 0.0;
     cudaEventRecord(start);
     triangleCountEdgeCentricKernel<<<blocks, BLOCKSIZE>>>(csr_offsets, csr_edges, device_tc_array, totaledges, totalvertices);
+    cudaDeviceSynchronize();
+
+    blocks = ceil((double) totalvertices / BLOCKSIZE);
+    divideTCArray<<<blocks, BLOCKSIZE>>>(device_tc_array, 2, totalvertices);
+    cudaDeviceSynchronize();
+
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    totalTime += time;
+    cudaDeviceSynchronize();
+
+    cout << "Finished Kernel" << endl;
+
+    cout << "Total Time: " << totalTime << endl;
+    cout << "First 40 values of TC: ";
+    printTC<<<1,1>>>(totalvertices, device_tc_array);
+    cudaDeviceSynchronize();
+    cout << endl;
+
+    cout << "Checking Correctness with Gunrock..." << endl;
+    checkTCCorrectnessWithSlabGraph(device_tc_array, filenameforCorrection);
+}
+
+void triangleCountEdgeCentricCOO(ll totalvertices, ll totaledges, ll *csr_offsets, ll *csr_edges, ll *coo_src, string &filenameforCorrection){
+    // Timing Calculations
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    float totalTime = 0.0;
+    float time;
+
+    unsigned int *device_tc_array;
+    cudaMalloc(&device_tc_array, (totalvertices) * sizeof(unsigned int));
+
+    unsigned blocks = ceil((double) totaledges / BLOCKSIZE);
+
+    cout << endl;
+    cout << "Launching Edge Centric TC Kernel" << endl;
+
+    // Kernel for TC
+    time = 0.0;
+    cudaEventRecord(start);
+    triangleCountEdgeCentricKernelCOO<<<blocks, BLOCKSIZE>>>(csr_offsets, csr_edges, coo_src, device_tc_array, totaledges, totalvertices);
     cudaDeviceSynchronize();
 
     blocks = ceil((double) totalvertices / BLOCKSIZE);

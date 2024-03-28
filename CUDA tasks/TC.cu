@@ -1,5 +1,8 @@
 #include<cuda.h>
 #include "kernels.h"
+#include <thrust/host_vector.h>
+#include <thrust/sort.h>
+#include <thrust/device_vector.h>
 
 int main(){
     srand(static_cast<unsigned int>(time(0)));
@@ -62,6 +65,10 @@ int main(){
 //        if(e.wt != 1) cout << e.wt << ' ';
         if(e.wt < 0) e.wt = 1;
 
+//        if(e.src == e.dest) {
+//            totalEdges -= 2;
+//            continue;
+//        }
         edgeList.push_back(e);
 
         degrees[e.src] += 1;
@@ -93,7 +100,25 @@ int main(){
     cout << "Maximum Degree: " << maxDegree << endl;
     cout << "Average Degree: " << avgDegree << endl;
 
+    clock_t start = clock();
     if(sortedOption) sort(edgeList.begin(), edgeList.end(), comp_Edges_and_dest);
+    clock_t end = clock();
+    double elapsed_time = 1000.0 * (end - start) / CLOCKS_PER_SEC;
+    cout << "Sorting Time: " << elapsed_time << " ms" << endl;
+
+//    clock_t start = clock();
+//    thrust::host_vector<Edge> h_edges = edgeList; // Copy edge list to host vector
+//    thrust::device_vector<Edge> d_edges = h_edges; // Copy host vector to device vector
+//
+//    thrust::sort(d_edges.begin(), d_edges.end()); // Sort on the GPU
+//
+//    h_edges = d_edges; // Copy sorted list back to host
+//    edgeList.resize(h_edges.size());
+////    edgeList = h_edges; // Copy back to original edge list
+//    std::copy(h_edges.begin(), h_edges.end(), edgeList.begin());
+//    clock_t end = clock();
+//    double elapsed_time = 1000.0 * (end - start) / CLOCKS_PER_SEC;
+//    cout << "Sorting Time on GPU: " << elapsed_time << " ms" << endl;
 
     ll duplicates = 0;
     for(ll i = 0; i < edgeList.size() - 1; ++i){
@@ -106,33 +131,69 @@ int main(){
         }
     }
 
-    cout << endl << "Duplicates: " << duplicates << endl;
 
+
+    ll selfLoops = 0;
+    for(ll i = 0; i < edgeList.size(); ++i){
+        Edge e = edgeList[i];
+        if(e.src == e.dest) {
+            ++selfLoops;
+//            cout << "Self Loop for vertex: " << e.src << endl;
+        }
+    }
+
+    cout << "Total Self Loops: " << selfLoops << endl;
+    cout << endl << "Duplicates before Removal: " << duplicates << endl;
+/*
+    set<Edge, compareForDuplicateRemoval> uniqueEdges(edgeList.begin(), edgeList.end());
+    vector<Edge> uniqueEdgeList(uniqueEdges.begin(), uniqueEdges.end());
+
+    totalEdges = uniqueEdgeList.size();
+
+    duplicates = 0;
+    for(ll i = 0; i < uniqueEdgeList.size() - 1; ++i){
+        Edge e1 = uniqueEdgeList[i];
+        Edge e2 = uniqueEdgeList[i + 1];
+
+        if(e1.src == e2.src && e1.dest == e2.dest){
+            ++duplicates;
+//            cout << "Duplicate Found" << endl;
+        }
+    }
+
+    cout << endl << "Duplicates after Removal: " << duplicates << endl;
+*/
     ll *hindex;
     ll *hheadvertex;
     ll *hweights;
+    ll *hsrc;
 
     hindex = (ll *)malloc((totalVertices + 1) * sizeof(ll));
     hheadvertex = (ll *)malloc(totalEdges * sizeof(ll));
     hweights = (ll *)malloc(totalEdges * sizeof(ll));
+    if(algoChoice == 12) hsrc = (ll *)malloc((totalEdges) * sizeof (ll));
 
     size_t initialFreeMemory, totalMemory;
     cudaMemGetInfo(&initialFreeMemory, &totalMemory);
     cout << "Initial Free Memory: " << initialFreeMemory / (1024 * 1024 * 1024) << " GB" << endl;
 
     buildCSR(totalVertices, totalEdges, edgeList, hindex, hheadvertex, hweights, degrees);
+    if(algoChoice == 12) buildCOO(totalEdges, edgeList, hsrc, hheadvertex, hweights);
 
     ll *dindex;
+    ll *dsrc;
     ll *dheadVertex;
     ll *dweights;
 
     cudaMalloc(&dindex, (ll)(totalVertices + 1) * sizeof(ll));
     cudaMalloc(&dheadVertex, (ll)(totalEdges) * sizeof(ll));
     cudaMalloc(&dweights, (ll)(totalEdges) * sizeof(ll));
+    if (algoChoice == 12) cudaMalloc(&dsrc, (ll)(totalEdges) * sizeof(ll));
 
     cudaMemcpy(dindex, hindex, (ll)(totalVertices + 1) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dheadVertex, hheadvertex, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
     cudaMemcpy(dweights, hweights, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
+    if (algoChoice == 12) cudaMemcpy(dsrc, hsrc, (ll)(totalEdges) * sizeof(ll), cudaMemcpyHostToDevice);
 
     cout << endl;
     cout << "Graph Built" << endl;
@@ -147,10 +208,11 @@ int main(){
 //    for (int i = 0; i < totalEdges; ++i)
 //        cout << hheadvertex[i] << ' ';
 //    cout << endl;
-
+    if(algoChoice == 6) ssspEdgeWorklistCentric(totalVertices, totalEdges, dindex, dheadVertex, dweights, 0, filenameforCorrection);
     if(algoChoice == 9) triangleCount(totalVertices, totalEdges, dindex, dheadVertex, filenameforCorrection);
     else if(algoChoice == 10) triangleCountEdgeCentric(totalVertices, totalEdges, dindex, dheadVertex, filenameforCorrection);
     else if(algoChoice == 11) triangleCountSortedVertexCentric(totalVertices, dindex, dheadVertex, filenameforCorrection);
+    else if(algoChoice == 12) triangleCountEdgeCentricCOO(totalVertices, totalEdges, dindex, dheadVertex, dsrc, filenameforCorrection);
 
     size_t finalFreeMemory;
     cudaMemGetInfo(&finalFreeMemory, &totalMemory);
