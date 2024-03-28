@@ -19,16 +19,16 @@
 
 #define THREADS_PER_BLOCK 1024
 #define VERTEX_BLOCK_SIZE 51000000
-#define EDGE_BLOCK_SIZE 2
+#define EDGE_BLOCK_SIZE 86
 #define VERTEX_PREALLOCATE_LIST_SIZE 2000
-#define EDGE_PREALLOCATE_LIST_SIZE 100000000
-//#define BATCH_SIZE 21
-// #define BATCH_SIZE 239332
+#define EDGE_PREALLOCATE_LIST_SIZE 250000000
+// #define BATCH_SIZE 21
+#define BATCH_SIZE 1000000
 
 // #define BATCH_SIZE 340
 // #define BATCH_SIZE 30491458
 // #define BATCH_SIZE 32073440
- #define BATCH_SIZE 47997626
+//  #define BATCH_SIZE 47997626
 // #define BATCH_SIZE 85362744
 // #define BATCH_SIZE 100663202
 // #define BATCH_SIZE 108109320
@@ -7186,12 +7186,13 @@ void generateCSRnew(unsigned long vertex_size, unsigned long edge_size, thrust::
     std::cout << std::endl << std::endl << std::endl;
 }
 
+int itr = 0;
 void generate_random_batch(unsigned long vertex_size, unsigned long batch_size, thrust::host_vector <unsigned long> &h_source, thrust::host_vector <unsigned long> &h_destination, thrust::host_vector <unsigned long> &h_source_degrees_new, thrust::host_vector <unsigned long> &h_source_degrees) {
 
     // unsigned long batch_size = 10;
     // unsigned long vertex_size = 30;
 
-    unsigned long seed = 0;
+    unsigned long seed = itr;
     unsigned long range = 0;
     unsigned long offset = 0;
 
@@ -7199,6 +7200,7 @@ void generate_random_batch(unsigned long vertex_size, unsigned long batch_size, 
     // unsigned long destination_array[10];
 
     srand(seed + 1);
+    ++itr;
     for (unsigned long i = 0; i < batch_size / 2; ++i)
     {
         // EdgeUpdateType edge_update_data;
@@ -8191,7 +8193,8 @@ void memory_usage() {
 __global__ void compactionVertexCentric(unsigned long totalvertices, struct vertex_dictionary_structure *device_vertex_dictionary){
     unsigned long id = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if(id <= totalvertices) return;
+    if(id >= totalvertices) return;
+    // if(id != 0) return;
 //    printf("%ld\n", totalvertices);
 
 //    printf("start FOR VERTEX %lu\n", id);
@@ -8370,7 +8373,7 @@ __global__ void compactionVertexCentric(unsigned long totalvertices, struct vert
         last_swap_offset = EDGE_BLOCK_SIZE - 1;
 
 //        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
-        while(last_swap_offset > 0 && curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
+        while(last_swap_offset >= 0 && (curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0)) {
             if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
                 device_vertex_dictionary->active_edge_count[id] -= 1;
                 curr->active_edge_count -= 1;
@@ -8449,7 +8452,8 @@ __device__ void removeParentChildLinkage(struct edge_block *node){
     }
 }
 
-__global__ void compactionVertexCentricPostOrder(unsigned long totalvertices, struct vertex_dictionary_structure *device_vertex_dictionary){
+__global__ void compactionVertexCentricPostOrder(unsigned long totalvertices,
+                                                 struct vertex_dictionary_structure *device_vertex_dictionary){
     unsigned long id = blockDim.x * blockIdx.x + threadIdx.x;
 
     if(id >= totalvertices) return;
@@ -8509,6 +8513,7 @@ __global__ void compactionVertexCentricPostOrder(unsigned long totalvertices, st
                 if(last_swap_offset == -1){
 //                     printf("here for %lu\n", id);
                     push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                    d_e_queue.rear %= EDGE_PREALLOCATE_LIST_SIZE;
                     push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
                     d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
                     device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
@@ -8532,6 +8537,7 @@ __global__ void compactionVertexCentricPostOrder(unsigned long totalvertices, st
 
                     if(last_swap_offset < 0){
                         push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                        d_e_queue.rear %= EDGE_PREALLOCATE_LIST_SIZE;
                         push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
                         d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
                         device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
@@ -8555,6 +8561,7 @@ __global__ void compactionVertexCentricPostOrder(unsigned long totalvertices, st
 
                         if(last_swap_offset == -1){
                             push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                            d_e_queue.rear %= EDGE_PREALLOCATE_LIST_SIZE;
                             push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
                             d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
                             device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
@@ -8586,7 +8593,7 @@ __global__ void compactionVertexCentricPostOrder(unsigned long totalvertices, st
         last_swap_offset = EDGE_BLOCK_SIZE - 1;
 
 //        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
-        while(last_swap_offset > 0 && curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
+        while(last_swap_offset >= 0 && (curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0)) {
             if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
                 device_vertex_dictionary->active_edge_count[id] -= 1;
                 curr->active_edge_count -= 1;
@@ -8618,6 +8625,7 @@ __global__ void compactionVertexCentricPostOrder(unsigned long totalvertices, st
 
     if(curr->active_edge_count == 0){
         push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+        d_e_queue.rear %= EDGE_PREALLOCATE_LIST_SIZE;
         push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
         d_e_queue.edge_block_address[push_index_for_edge_queue] = curr;
         device_vertex_dictionary->last_insert_edge_block[id] = curr->level_order_predecessor;
@@ -8672,6 +8680,24 @@ __global__ void recoveredMemoryKernel2(unsigned int* num_blocks_before, unsigned
     printf("\n");
 }
 
+__global__ void recoveredMemoryPercentage(unsigned int* num_blocks_before, unsigned int* num_blocks_after, unsigned int* totalEdgeBlocks){
+    d_e_queue.rear %= EDGE_PREALLOCATE_LIST_SIZE;
+    d_e_queue.front %= EDGE_PREALLOCATE_LIST_SIZE;
+    printf("Rear After: %u\n", d_e_queue.rear);
+    printf("Front After: %u\n", d_e_queue.front);
+    if (d_e_queue.rear >= d_e_queue.front) *num_blocks_after = d_e_queue.rear - d_e_queue.front;
+    else *num_blocks_after = EDGE_PREALLOCATE_LIST_SIZE - d_e_queue.front + d_e_queue.rear;
+
+    printf("Number of blocks in queue after compaction: %u\n", *num_blocks_after);
+    unsigned int num_compacted_blocks = *num_blocks_after - *num_blocks_before;
+    printf("Number of compacted blocks: %u\n", num_compacted_blocks);
+    unsigned int recovered_memory = (sizeof(struct edge_block) * num_compacted_blocks) / (1024 * 1024);
+    printf("Recovered Memory: %u\n", recovered_memory);
+    printf("\n");
+
+    unsigned int total_memory =  
+}
+
 __global__ void countTotalEdgeBlocks(unsigned int totalVertices, unsigned int *totalEdgeBlocks, struct vertex_dictionary_structure *device_vertex_dictionary, unsigned int *edge_block_count_per_vertex){
     edge_block_count_per_vertex[0] = 0;
     for(unsigned int i = 0; i < totalVertices; ++i){
@@ -8680,6 +8706,13 @@ __global__ void countTotalEdgeBlocks(unsigned int totalVertices, unsigned int *t
         edge_block_count_per_vertex[i + 1] = count;
         if(i > 0) edge_block_count_per_vertex[i + 1] += edge_block_count_per_vertex[i];
     }
+}
+
+__global__ void countEdgeBlocksPerVertex(unsigned int totalvertices, struct vertex_dictionary_structure *device_vertex_dictionary, unsigned int *edge_block_count_per_vertex){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+    if(id >= totalvertices) return;
+
+    edge_block_count_per_vertex[id] = (unsigned int) device_vertex_dictionary->edge_block_count[id];
 }
 
 __global__ void compactionWithStack(unsigned long totalvertices, struct vertex_dictionary_structure *device_vertex_dictionary,
@@ -8821,7 +8854,7 @@ __global__ void compactionWithStack(unsigned long totalvertices, struct vertex_d
         last_swap_offset = EDGE_BLOCK_SIZE - 1;
 
 //        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
-        while(last_swap_offset > 0 && curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0) {
+        while(last_swap_offset >= 0 && (curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0)) {
             if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
                 device_vertex_dictionary->active_edge_count[id] -= 1;
                 curr->active_edge_count -= 1;
@@ -8930,6 +8963,560 @@ __global__ void bulkDeletion(struct vertex_dictionary_structure *device_vertex_d
     }
 }
 
+__global__ void helper1(unsigned int i, unsigned int *edge_block_count_per_vertex, unsigned int *totalEdgeBlocks){
+    *totalEdgeBlocks = edge_block_count_per_vertex[i];
+}
+
+__global__ void compactionVertexCentricParallel(unsigned long totalvertices,
+                                                struct vertex_dictionary_structure *device_vertex_dictionary,
+                                                unsigned int* push_area){
+    unsigned long id = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(id >= totalvertices) return;
+
+    struct edge_block *curr = device_vertex_dictionary->edge_block_address[id];
+    struct edge_block *root = device_vertex_dictionary->edge_block_address[id];
+    unsigned long bitString;
+    unsigned long parent_bit_string;
+    struct edge_block *parent = NULL;
+    unsigned int push_index_for_edge_queue = (push_area[id] + d_e_queue.rear) % EDGE_PREALLOCATE_LIST_SIZE;
+
+    //    printf("%p\n", curr);
+//    printf("%p\n", root);
+
+    if(!curr) return;
+
+    struct edge_block *swapping_block = device_vertex_dictionary->last_insert_edge_block[id];
+//    printf("%p\n", swapping_block);
+
+    unsigned long total_edge_blocks = device_vertex_dictionary->edge_block_count[id];
+//    printf("%lu\n", total_edge_blocks);
+
+    long curr_edge_block_index = 0;
+    long last_edge_block_index = total_edge_blocks - 1;
+    long last_swap_offset = device_vertex_dictionary->last_insert_edge_offset[id];
+//    printf("For %lu last swap offset is: %ld\n", id, last_swap_offset);
+    --last_swap_offset;
+
+//    if(id == 0) printf("%ld\n", curr_edge_block_index);
+//    if(id == 0) printf("%ld\n", last_edge_block_index);
+//    if(id == 0) printf("%ld\n", last_swap_offset);
+
+    while(curr_edge_block_index < last_edge_block_index){
+//        if(id == 0) printf("current edge block index for vertex %lu: %lu\n", id, curr_edge_block_index);
+//        if(id == 0) printf("last edge block index for vertex %lu: %lu\n", id, last_edge_block_index);
+
+        for(unsigned long i = 0; i < EDGE_BLOCK_SIZE; ++i){
+            unsigned long e = (curr->edge_block_entry[i]).destination_vertex;
+
+            if(e != INFTY) continue;
+
+//             printf("%lu for vertex %lu\n", e, id);
+
+            // deleted edge found
+            int edge_swapped_flag = 0;
+
+            while(edge_swapped_flag == 0){
+//                 printf("here FOR VERTEX %lu\n", id);
+                if(curr_edge_block_index == last_edge_block_index) break;
+//                 printf("here for vertex %lu\n", id);
+//                 if(id == 0) {
+//                     printf("%ld\n", last_swap_offset);
+//                     break;
+//                 }
+//                 printf("1here for %lu\n", id);
+//                 printf("%ld\n", last_swap_offset);
+                if(last_swap_offset == -1){
+//                     printf("here for %lu\n", id);
+//                    push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                    d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
+                    ++push_index_for_edge_queue;
+                    push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+                    swapping_block->lptr = NULL;
+                    swapping_block->rptr = NULL;
+                    device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
+                    swapping_block->active_edge_count = 0;
+                    swapping_block = swapping_block->level_order_predecessor;
+//                     printf("%p\n", swapping_block);
+                    swapping_block->lptr = NULL;
+                    swapping_block->rptr = NULL;
+                    last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+
+                    // freeing the parent to child relation
+                    if(last_edge_block_index & 1) parent_bit_string = bit_string_lookup[last_edge_block_index / 2];
+                    else parent_bit_string = bit_string_lookup[last_edge_block_index / 2 - 1];
+
+                    parent = traverse_bit_string(root, parent_bit_string);
+
+                    if(last_edge_block_index & 1) parent->lptr = NULL;
+                    else parent->rptr = NULL;
+
+
+                    --last_edge_block_index;
+                    device_vertex_dictionary->edge_block_count[id] -= 1;
+                    if(curr_edge_block_index == last_edge_block_index) break;
+                }
+                else{
+                    while(last_swap_offset >= 0 && swapping_block->edge_block_entry[last_swap_offset].destination_vertex == INFTY /*&& swapping_block->edge_block_entry[last_swap_offset].destination_vertex != 0*/) {
+                        swapping_block->active_edge_count -= 1;
+                        device_vertex_dictionary->active_edge_count[id] -= 1;
+                        --last_swap_offset;
+                    }
+
+//                     if(id == 2) printf("%ld\n", last_swap_offset);
+
+                    if(last_swap_offset < 0){
+//                        push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                        d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
+                        ++push_index_for_edge_queue;
+                        push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+                        swapping_block->lptr = NULL;
+                        swapping_block->rptr = NULL;
+                        device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
+                        swapping_block->active_edge_count = 0;
+                        swapping_block = swapping_block->level_order_predecessor;
+//                         printf("%p\n", swapping_block);
+                        swapping_block->lptr = NULL;
+                        swapping_block->rptr = NULL;
+                        last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+
+                        // freeing the parent to child relation
+                        if(last_edge_block_index & 1) parent_bit_string = bit_string_lookup[last_edge_block_index / 2];
+                        else parent_bit_string = bit_string_lookup[last_edge_block_index / 2 - 1];
+
+                        parent = traverse_bit_string(root, parent_bit_string);
+
+                        if(last_edge_block_index & 1) parent->lptr = NULL;
+                        else parent->rptr = NULL;
+
+
+                        --last_edge_block_index;
+                        device_vertex_dictionary->edge_block_count[id] -= 1;
+                    }
+                    else{
+                        if(curr_edge_block_index == last_edge_block_index) break;
+
+                        curr->edge_block_entry[i].destination_vertex = swapping_block->edge_block_entry[last_swap_offset].destination_vertex;
+                        swapping_block->edge_block_entry[last_swap_offset].destination_vertex = 0;
+                        --last_swap_offset;
+                        swapping_block->active_edge_count -= 1;
+                        device_vertex_dictionary->active_edge_count[id] -= 1;
+                        edge_swapped_flag = 1;
+
+                        if(last_swap_offset == -1){
+//                            push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                            d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
+                            ++push_index_for_edge_queue;
+                            push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+                            swapping_block->lptr = NULL;
+                            swapping_block->rptr = NULL;
+                            device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
+                            swapping_block->active_edge_count = 0;
+                            swapping_block = swapping_block->level_order_predecessor;
+//                         printf("%p\n", swapping_block);
+                            swapping_block->lptr = NULL;
+                            swapping_block->rptr = NULL;
+                            last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+
+                            // freeing the parent to child relation
+                            if(last_edge_block_index & 1) parent_bit_string = bit_string_lookup[last_edge_block_index / 2];
+                            else parent_bit_string = bit_string_lookup[last_edge_block_index / 2 - 1];
+
+                            parent = traverse_bit_string(root, parent_bit_string);
+
+                            if(last_edge_block_index & 1) parent->lptr = NULL;
+                            else parent->rptr = NULL;
+
+
+                            --last_edge_block_index;
+                            device_vertex_dictionary->edge_block_count[id] -= 1;
+                        }
+                    }
+                }
+            }
+
+            if(curr_edge_block_index == last_edge_block_index) break;
+        }
+
+        if(curr_edge_block_index == last_edge_block_index) break;
+
+        ++curr_edge_block_index;
+        bitString = bit_string_lookup[curr_edge_block_index];
+        curr = traverse_bit_string(root, bitString);
+    }
+//    printf("Reached out of the while loop\n");
+    if(curr_edge_block_index == last_edge_block_index){
+//        printf("%lu\n", curr_edge_block_index);
+//        printf("here for vertex %lu\n", id);
+        last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+//        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
+        while(last_swap_offset >= 0 && (curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0)) {
+            if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
+                device_vertex_dictionary->active_edge_count[id] -= 1;
+                curr->active_edge_count -= 1;
+                curr->edge_block_entry[last_swap_offset].destination_vertex = 0;
+            }
+            --last_swap_offset;
+        }
+        long start = 0;
+//        printf("%lu for vertex %lu\n", last_swap_offset, id);
+        while(start < EDGE_BLOCK_SIZE && start < last_swap_offset && last_swap_offset >= 0 && last_swap_offset < EDGE_BLOCK_SIZE){
+//            printf("%lu, %lu for vertex %lu\n", start, last_swap_offset, id);
+            if(curr->edge_block_entry[start].destination_vertex != INFTY) ++start;
+            else if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
+                curr->edge_block_entry[last_swap_offset].destination_vertex = 0;
+                device_vertex_dictionary->active_edge_count[id] -= 1;
+                --last_swap_offset;
+                --curr->active_edge_count;
+            }
+            else{
+                curr->edge_block_entry[start].destination_vertex = curr->edge_block_entry[last_swap_offset].destination_vertex;
+                curr->edge_block_entry[last_swap_offset].destination_vertex = 0;
+                curr->active_edge_count -= 1;
+                device_vertex_dictionary->active_edge_count[id] -= 1;
+                --last_swap_offset;
+//                printf("%lu\n", last_swap_offset);
+            }
+        }
+    }
+
+    curr->lptr = NULL;
+    curr->rptr = NULL;
+//    printf("here2 FOR VERTEX %lu\n", id);
+
+    if(curr->active_edge_count == 0){
+//        push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+        d_e_queue.edge_block_address[push_index_for_edge_queue] = curr;
+        ++push_index_for_edge_queue;
+        push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+        device_vertex_dictionary->last_insert_edge_block[id] = curr->level_order_predecessor;
+        device_vertex_dictionary->last_insert_edge_offset[id] = EDGE_BLOCK_SIZE - 1;
+        device_vertex_dictionary->edge_block_count[id] -= 1;
+//        printf("here3 FOR VERTEX %lu\n", id);
+        if(curr == root){
+//            printf("here4 FOR VERTEX %lu\n", id);
+            curr->level_order_predecessor = NULL;
+            device_vertex_dictionary->edge_block_address[id] = NULL;
+            device_vertex_dictionary->active_edge_count[id] = 0;
+            device_vertex_dictionary->last_insert_edge_offset[id] = 0;
+            device_vertex_dictionary->edge_block_count[id] = 0;
+            device_vertex_dictionary->last_insert_edge_block[id] = NULL;
+        }
+    }
+
+//    printf("IN THE KERNEL FOR VERTEX %lu\n", id);
+}
+
+__device__ void preorderTraversalForFindingHoles(unsigned int vertex, struct edge_block *root, unsigned int *push_area){
+    if(!root) return;
+
+    for(unsigned long j = 0 ; j < root->active_edge_count ; j++) {
+        if(root->edge_block_entry[j].destination_vertex == INFTY
+        || root->edge_block_entry[j].destination_vertex == 0)
+                ++push_area[vertex];
+    }
+
+    preorderTraversalForFindingHoles(vertex, root->lptr, push_area);
+    preorderTraversalForFindingHoles(vertex, root->rptr, push_area);
+}
+
+__global__ void findHolesPerVertex(unsigned long totalvertices,
+                                   struct vertex_dictionary_structure *device_vertex_dictionary,
+                                   unsigned int *push_area){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+    if(id >= totalvertices) return;
+
+    if((device_vertex_dictionary->edge_block_address[id] != NULL) && (device_vertex_dictionary->vertex_id[id] != 0)){
+        preorderTraversalForFindingHoles(id, device_vertex_dictionary->edge_block_address[id], push_area);
+    }
+
+    push_area[id] /= EDGE_BLOCK_SIZE;
+}
+
+__global__ void findBlocksPerVertex(unsigned long totalvertices,
+                                    struct vertex_dictionary_structure *device_vertex_dictionary,
+                                    unsigned int *blocks_per_vertex){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+    if(id >= totalvertices) return;
+
+    blocks_per_vertex[id] = (unsigned int) device_vertex_dictionary->edge_block_count[id];
+}
+
+__global__ void findTotalEdgeBlocks(unsigned int totalvertices,
+                                    unsigned int *total_edge_blocks,
+                                    unsigned int *blocks_per_vertex_prefixSum,
+                                    unsigned int *blocks_per_vertex){
+    *total_edge_blocks = blocks_per_vertex_prefixSum[totalvertices - 1] + blocks_per_vertex[totalvertices - 1];
+
+//    for(unsigned int i = 0; i <= totalvertices; ++i){
+//        printf("%u ", blocks_per_vertex_prefixSum[i]);
+//    }
+
+    printf("\n%u\n", *total_edge_blocks);
+}
+
+__global__ void compactionVertexCentricLevelOrderQueue(unsigned long totalvertices,
+                                                       struct vertex_dictionary_structure *device_vertex_dictionary,
+                                                       unsigned int *blocks_per_vertex_start,
+                                                       struct edge_block **level_order_queue){
+    unsigned int id = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if(id >= totalvertices) return;
+
+//    if(id != 0) return;
+//    printf("start FOR VERTEX %lu\n", id);
+
+    struct edge_block *curr = device_vertex_dictionary->edge_block_address[id];
+    struct edge_block *root = device_vertex_dictionary->edge_block_address[id];
+    unsigned long bitString;
+    unsigned long parent_bit_string;
+    struct edge_block *parent = NULL;
+    unsigned int push_index_for_edge_queue;
+    unsigned int start_for_level_queue = blocks_per_vertex_start[id];
+//    printf("%ld\n", start_for_level_queue);
+
+//    printf("%p\n", curr);
+//    printf("%p\n", root);
+
+    if(!curr) return;
+
+    struct edge_block *swapping_block = device_vertex_dictionary->last_insert_edge_block[id];
+//    printf("%p\n", swapping_block);
+
+    unsigned long total_edge_blocks = device_vertex_dictionary->edge_block_count[id];
+//    printf("%lu\n", total_edge_blocks);
+
+    long curr_edge_block_index = 0;
+    long last_edge_block_index = total_edge_blocks - 1;
+    long last_swap_offset = device_vertex_dictionary->last_insert_edge_offset[id];
+//    printf("For %lu last swap offset is: %ld\n", id, last_swap_offset);
+    --last_swap_offset;
+
+
+//    if(id == 0) printf("%ld\n", curr_edge_block_index);
+//    if(id == 0) printf("%ld\n", last_edge_block_index);
+//    if(id == 0) printf("%ld\n", last_swap_offset);
+
+    while(curr_edge_block_index < last_edge_block_index){
+//        if(id == 2) printf("current edge block index for vertex %lu: %lu\n", id, curr_edge_block_index);
+//        if(id == 2) printf("last edge block index for vertex %lu: %lu\n", id, last_edge_block_index);
+
+        for(unsigned long i = 0; i < EDGE_BLOCK_SIZE; ++i){
+            unsigned long e = (curr->edge_block_entry[i]).destination_vertex;
+
+            if(e != INFTY) continue;
+
+//             printf("%lu for vertex %lu\n", e, id);
+
+            // deleted edge found
+            int edge_swapped_flag = 0;
+
+            while(edge_swapped_flag == 0){
+//                 printf("here FOR VERTEX %lu\n", id);
+                if(curr_edge_block_index == last_edge_block_index) break;
+//                 printf("here for vertex %lu\n", id);
+//                 if(id == 0) {
+//                     printf("%ld\n", last_swap_offset);
+//                     break;
+//                 }
+//                 printf("1here for %lu\n", id);
+//                 printf("%ld\n", last_swap_offset);
+                if(last_swap_offset == -1){
+//                  printf("here for %lu\n", id);
+                    push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+//                  if(d_e_queue.rear >= EDGE_PREALLOCATE_LIST_SIZE) printf("%ld\n", id);
+                    push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+                    d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
+//                    swapping_block->lptr = NULL;
+//                    swapping_block->rptr = NULL;
+                    device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
+                    swapping_block->active_edge_count = 0;
+                    swapping_block = swapping_block->level_order_predecessor;
+//                  printf("%p\n", swapping_block);
+//                    swapping_block->lptr = NULL;
+//                    swapping_block->rptr = NULL;
+                    last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+                    /*
+                    // freeing the parent to child relation
+                    if(last_edge_block_index & 1) parent_bit_string = bit_string_lookup[last_edge_block_index / 2];
+                    else parent_bit_string = bit_string_lookup[last_edge_block_index / 2 - 1];
+
+                    parent = traverse_bit_string(root, parent_bit_string);
+
+                    if(last_edge_block_index & 1) parent->lptr = NULL;
+                    else parent->rptr = NULL;
+                     */
+
+                    --last_edge_block_index;
+                    device_vertex_dictionary->edge_block_count[id] -= 1;
+                    if(curr_edge_block_index == last_edge_block_index) break;
+                }
+                else{
+                    while(last_swap_offset >= 0 && swapping_block->edge_block_entry[last_swap_offset].destination_vertex == INFTY /*&& swapping_block->edge_block_entry[last_swap_offset].destination_vertex != 0*/) {
+                        swapping_block->active_edge_count -= 1;
+                        device_vertex_dictionary->active_edge_count[id] -= 1;
+                        --last_swap_offset;
+                    }
+
+//                     if(id == 2) printf("%ld\n", last_swap_offset);
+
+                    if(last_swap_offset < 0){
+                        push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                        push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+                        d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
+//                        swapping_block->lptr = NULL;
+//                        swapping_block->rptr = NULL;
+                        device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
+                        swapping_block->active_edge_count = 0;
+                        swapping_block = swapping_block->level_order_predecessor;
+//                         printf("%p\n", swapping_block);
+//                        swapping_block->lptr = NULL;
+//                        swapping_block->rptr = NULL;
+                        last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+                        /*
+                        // freeing the parent to child relation
+                        if(last_edge_block_index & 1) parent_bit_string = bit_string_lookup[last_edge_block_index / 2];
+                        else parent_bit_string = bit_string_lookup[last_edge_block_index / 2 - 1];
+
+                        parent = traverse_bit_string(root, parent_bit_string);
+
+                        if(last_edge_block_index & 1) parent->lptr = NULL;
+                        else parent->rptr = NULL;
+                         */
+
+                        --last_edge_block_index;
+                        device_vertex_dictionary->edge_block_count[id] -= 1;
+                    }
+                    else{
+                        if(curr_edge_block_index == last_edge_block_index) break;
+
+                        curr->edge_block_entry[i].destination_vertex = swapping_block->edge_block_entry[last_swap_offset].destination_vertex;
+                        swapping_block->edge_block_entry[last_swap_offset].destination_vertex = 0;
+                        --last_swap_offset;
+                        swapping_block->active_edge_count -= 1;
+                        device_vertex_dictionary->active_edge_count[id] -= 1;
+                        edge_swapped_flag = 1;
+
+                        if(last_swap_offset == -1){
+                            push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+                            push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+                            d_e_queue.edge_block_address[push_index_for_edge_queue] = swapping_block;
+//                            swapping_block->lptr = NULL;
+//                            swapping_block->rptr = NULL;
+                            device_vertex_dictionary->active_edge_count[id] -= swapping_block->active_edge_count;
+                            swapping_block->active_edge_count = 0;
+                            swapping_block = swapping_block->level_order_predecessor;
+//                         printf("%p\n", swapping_block);
+//                            swapping_block->lptr = NULL;
+//                            swapping_block->rptr = NULL;
+                            last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+                            /*
+                            // freeing the parent to child relation
+                            if(last_edge_block_index & 1) parent_bit_string = bit_string_lookup[last_edge_block_index / 2];
+                            else parent_bit_string = bit_string_lookup[last_edge_block_index / 2 - 1];
+
+                            parent = traverse_bit_string(root, parent_bit_string);
+
+                            if(last_edge_block_index & 1) parent->lptr = NULL;
+                            else parent->rptr = NULL;
+                             */
+
+                            --last_edge_block_index;
+                            device_vertex_dictionary->edge_block_count[id] -= 1;
+                        }
+                    }
+                }
+            }
+
+            if(curr_edge_block_index == last_edge_block_index) break;
+        }
+
+        if(curr_edge_block_index == last_edge_block_index) break;
+
+        unsigned int idx1 = start_for_level_queue + 2 * ((unsigned int) curr_edge_block_index);
+        unsigned int idx2 = start_for_level_queue + 2 * ((unsigned int) curr_edge_block_index) + 1;
+//        printf("idx1: %u idx2: %u\n", idx1, idx2);
+        if(curr->lptr != NULL) level_order_queue[idx1] = curr->lptr;
+        if(curr->rptr != NULL) level_order_queue[idx2] = curr->rptr;
+
+//        ++curr_edge_block_index;
+//        bitString = bit_string_lookup[curr_edge_block_index];
+//        curr = traverse_bit_string(root, bitString);
+        unsigned int idx3 = start_for_level_queue + curr_edge_block_index;
+//        printf("idx3: %u\n", idx3);
+        curr = level_order_queue[idx3];
+        ++curr_edge_block_index;
+    }
+//    printf("Reached out of the while loop\n");
+    if(curr_edge_block_index == last_edge_block_index){
+//        printf("%lu\n", curr_edge_block_index);
+//        printf("here for vertex %lu\n", id);
+        last_swap_offset = EDGE_BLOCK_SIZE - 1;
+
+//        printf("%lu %lu\n", curr_edge_block_index, last_swap_offset);
+        while(last_swap_offset >= 0 && (curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY || curr->edge_block_entry[last_swap_offset].destination_vertex == 0)) {
+            if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
+                device_vertex_dictionary->active_edge_count[id] -= 1;
+                curr->active_edge_count -= 1;
+                curr->edge_block_entry[last_swap_offset].destination_vertex = 0;
+            }
+            --last_swap_offset;
+        }
+        long start = 0;
+//        printf("%lu for vertex %lu\n", last_swap_offset, id);
+        while(start < EDGE_BLOCK_SIZE && start < last_swap_offset && last_swap_offset >= 0 && last_swap_offset < EDGE_BLOCK_SIZE){
+//            printf("%lu, %lu for vertex %lu\n", start, last_swap_offset, id);
+            if(curr->edge_block_entry[start].destination_vertex != INFTY) ++start;
+            else if(curr->edge_block_entry[last_swap_offset].destination_vertex == INFTY) {
+                curr->edge_block_entry[last_swap_offset].destination_vertex = 0;
+                device_vertex_dictionary->active_edge_count[id] -= 1;
+                --last_swap_offset;
+                --curr->active_edge_count;
+            }
+            else{
+                curr->edge_block_entry[start].destination_vertex = curr->edge_block_entry[last_swap_offset].destination_vertex;
+                curr->edge_block_entry[last_swap_offset].destination_vertex = 0;
+                curr->active_edge_count -= 1;
+                device_vertex_dictionary->active_edge_count[id] -= 1;
+                --last_swap_offset;
+//                printf("%lu\n", last_swap_offset);
+            }
+        }
+    }
+
+//    curr->lptr = NULL;
+//    curr->rptr = NULL;
+//    printf("here2 FOR VERTEX %lu\n", id);
+
+    if(curr->active_edge_count == 0){
+        push_index_for_edge_queue = atomicAdd(&(d_e_queue.rear), 1);
+        push_index_for_edge_queue %= EDGE_PREALLOCATE_LIST_SIZE;
+        d_e_queue.edge_block_address[push_index_for_edge_queue] = curr;
+        device_vertex_dictionary->last_insert_edge_block[id] = curr->level_order_predecessor;
+        device_vertex_dictionary->last_insert_edge_offset[id] = EDGE_BLOCK_SIZE - 1;
+        device_vertex_dictionary->edge_block_count[id] -= 1;
+//        printf("here3 FOR VERTEX %lu\n", id);
+        if(curr == root){
+//            printf("here4 FOR VERTEX %lu\n", id);
+            curr->level_order_predecessor = NULL;
+            device_vertex_dictionary->edge_block_address[id] = NULL;
+            device_vertex_dictionary->active_edge_count[id] = 0;
+            device_vertex_dictionary->last_insert_edge_offset[id] = 0;
+            device_vertex_dictionary->edge_block_count[id] = 0;
+            device_vertex_dictionary->last_insert_edge_block[id] = NULL;
+        }
+    }
+
+//    printf("IN THE KERNEL FOR VERTEX %lu\n", id);
+}
+
 int main(void) {
 
 //    char fileLoc[20] = "../../input.mtx";
@@ -8938,7 +9525,7 @@ int main(void) {
     // char fileLoc[20] = "inputSSSP.mtx";
 //     char fileLoc[20] = "chesapeake.mtx";
     // char fileLoc[30] = "klein-b1.mtx";
-//     char fileLoc[30] = "../../Graphs/chesapeake.mtx";
+//    char fileLoc[30] = "../../Graphs/chesapeake.mtx";
     // char fileLoc[30] = "bio-celegansneural.mtx";
 //     char fileLoc[40] = "../../Graphs/inf-luxembourg_osm.mtx";
     // char fileLoc[30] = "rgg_n_2_16_s0.mtx";
@@ -8950,11 +9537,11 @@ int main(void) {
     // char fileLoc[30] = "fe-ocean.mtx";
 //     char fileLoc[40] = "../../Graphs/co-papers-dblp.mtx";
 //     char fileLoc[40] = "../../Graphs/co-papers-citeseer.mtx";
-    char fileLoc[40] = "../../Graphs/hugetrace-00020.mtx";
+//     char fileLoc[40] = "../../Graphs/hugetrace-00020.mtx";
 //      char fileLoc[50] = "../../Graphs/channel-500x100x100-b050.mtx";
 //     char fileLoc[30] = "../../Graphs/kron_g500-logn16.mtx";
     // char fileLoc[30] = "kron_g500-logn17.mtx";
-//     char fileLoc[50] = "../../Graphs/kron_g500-logn21.mtx";
+     char fileLoc[50] = "../../Graphs/kron_g500-logn21.mtx";
     // char fileLoc[30] = "delaunay_n22.mtx";
     // char fileLoc[30] = "delaunay_n23.mtx";
 //     char fileLoc[30] = "../../Graphs/delaunay_n24.mtx";
@@ -9273,7 +9860,7 @@ int main(void) {
     // al_time = clock();
     al_time = 0;
 
-    std::cout << "Enter type of insertion required" << std::endl << "1. Regular batched edge insertion" << std::endl << "2. Edge Insert and Delete performance benchmark" << std::endl << "3. Vertex Insert and Delete performance benchmark" << std::endl << "4. Compaction Test" << std::endl;
+    std::cout << "Enter type of insertion required" << std::endl << "1. Regular batched edge insertion" << std::endl << "2. Edge Insert and Delete performance benchmark" << std::endl << "3. Vertex Insert and Delete performance benchmark" << std::endl << "4. Compaction Test" << std::endl << "5. Compaction Overhead" << std::endl;
     std::cin >> choice;
 
 //    std::cout << "Printing the queue ptrs: " << std::endl;
@@ -9539,6 +10126,7 @@ int main(void) {
 
             thread_blocks = ceil(double(h_graph_prop->xDim) / THREADS_PER_BLOCK);
             adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, i, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer);
+            cudaDeviceSynchronize();
             update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
 
             cudaDeviceSynchronize();
@@ -9548,16 +10136,16 @@ int main(void) {
             cudaDeviceSynchronize();
 
             std::cout << std::endl << "INITIAL BULK BUILD DONE!" << std::endl;
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
-            cudaDeviceSynchronize();
+        //    printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+           cudaDeviceSynchronize();
             std::cout << std::endl << "INITIAL BULK BUILD DONE!" << std::endl;
 
             std::cout << std::endl << "STARTING BULK DELETION!" << std::endl;
             bulkDeletion<<<thread_blocks, THREADS_PER_BLOCK>>>(device_vertex_dictionary, vertex_size);
             cudaDeviceSynchronize();
             std::cout << std::endl << "BULK DELETION DONE!" << std::endl;
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
-            cudaDeviceSynchronize();
+        //    printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+           cudaDeviceSynchronize();
             std::cout << std::endl << "BULK DELETION DONE!" << std::endl;
 
             std::cout << std::endl << "STARTING COMPACTION!" << std::endl;
@@ -9566,20 +10154,535 @@ int main(void) {
             cudaDeviceSynchronize();
             CUDA_CHECK_ERROR();
             std::cout << std::endl << "COMPACTION DONE!" << std::endl;
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
-            cudaDeviceSynchronize();
+        //    printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+           cudaDeviceSynchronize();
             std::cout << std::endl << "COMPACTION DONE!" << std::endl;
 
             std::cout << std::endl << "STARTING 2nd BULK BUILD" << std::endl;
             adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, i, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer);
+            cudaDeviceSynchronize();
             update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
             cudaDeviceSynchronize();
 
             std::cout << std::endl << "2nd BULK BUILD DONE!" << std::endl;
-//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
-            cudaDeviceSynchronize();
+        //    printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+           cudaDeviceSynchronize();
             std::cout << std::endl << "2nd BULK BUILD DONE!" << std::endl;
         }
+    }
+    else if(choice == 5){
+        // I D I D I I D I I I D D D D D D D - Compaction
+        cudaEvent_t start, stop;
+        cudaEventCreate(&start);
+        cudaEventCreate(&stop);
+
+        float totalTime = 0.0, compactTime = 0.0;
+        float time;
+
+        for(unsigned long i = 0 ; i < 1 ; i++) {
+            std::cout << std::endl << "STARTING INITIAL BULK BUILD" << std::endl;
+            std::cout << std::endl << "Iteration " << i << std::endl;
+            total_edge_blocks_count_batch = 0;
+            generate_csr_batch(vertex_size, edge_size, max_degree, h_source, h_destination, h_csr_offset_new, h_csr_edges_new, h_source_degrees_new, h_edge_blocks_count, h_prefix_sum_edge_blocks_new, h_batch_update_data, edge_size, total_batches, i, space_remaining, &total_edge_blocks_count_batch, &init_time);
+
+            thrust::copy(h_source_degrees_new.begin(), h_source_degrees_new.end(), d_source_degrees_new.begin());
+            thrust::copy(h_csr_offset_new.begin(), h_csr_offset_new.end(), d_csr_offset_new.begin());
+            thrust::copy(h_csr_edges_new.begin(), h_csr_edges_new.end(), d_csr_edges_new.begin());
+            thrust::copy(h_edge_blocks_count.begin(), h_edge_blocks_count.end(), d_edge_blocks_count.begin());
+            thrust::copy(h_prefix_sum_edge_blocks_new.begin(), h_prefix_sum_edge_blocks_new.end(), d_prefix_sum_edge_blocks_new.begin());
+
+            temp_time = clock();
+            cudaMemcpy(d_batch_update_data, h_batch_update_data, (batch_size) * sizeof(unsigned long), cudaMemcpyHostToDevice);
+
+            unsigned long start_index = i * batch_size;
+            unsigned long end_index;
+
+            unsigned long remaining_edges = edge_size - start_index;
+
+            if(remaining_edges <= batch_size)
+                end_index = edge_size;
+            else
+                end_index = (i + 1) * batch_size;
+
+            unsigned long current_batch = end_index - start_index;
+
+            thread_blocks = ceil(double(h_graph_prop->xDim) / THREADS_PER_BLOCK);
+            time = 0.0;
+            cudaEventRecord(start);
+            adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, i, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer);
+            cudaDeviceSynchronize();
+            update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
+
+//            cudaDeviceSynchronize();
+            cudaEventRecord(stop);
+            cudaEventSynchronize(stop);
+
+            cudaEventElapsedTime(&time, start, stop);
+            totalTime += time;
+            memory_usage();
+            temp_time = clock() - temp_time;
+            al_time += temp_time;
+            cudaDeviceSynchronize();
+
+            std::cout << std::endl << "INITIAL BULK BUILD DONE!" << std::endl;
+//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+            std::cout << std::endl << "INITIAL BULK BUILD DONE!" << std::endl;
+        }
+
+        // I D I D I I D I I I  D  D  D  D  D  D  D - Compaction
+        // 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+
+        for(int itr = 0; itr < 17; ++itr){
+            // insertion
+            unsigned long average_degree_batch, max_degree_batch, sum_degree_batch;
+            unsigned long kk = 1;
+            std::cout << std::endl << "Iteration " << kk << std::endl;
+
+            total_edge_blocks_count_batch = 0;
+
+            generate_random_batch(h_graph_prop->xDim, BATCH_SIZE, h_source, h_destination, h_source_degrees_new, h_source_degrees);
+            std::cout << "Generated random batch" << std::endl;
+            generate_csr_batch(vertex_size, edge_size, max_degree, h_source, h_destination, h_csr_offset_new, h_csr_edges_new, h_source_degrees_new, h_edge_blocks_count, h_prefix_sum_edge_blocks_new, h_batch_update_data, BATCH_SIZE, total_batches, kk, space_remaining, &total_edge_blocks_count_batch, &init_time);
+            std::cout << "Generated CSR batch" << std::endl;
+
+            total_edge_blocks_count_batch = h_prefix_sum_edge_blocks_new[vertex_size];
+
+            max_degree_batch = h_source_degrees_new[0];
+            sum_degree_batch = h_source_degrees_new[0];
+            for(unsigned long j = 1 ; j < vertex_size ; j++) {
+
+                if(h_source_degrees_new[j] > max_degree_batch)
+                    max_degree_batch = h_source_degrees_new[j];
+                sum_degree_batch += h_source_degrees_new[j];
+            }
+
+            average_degree_batch = sum_degree_batch / vertex_size ;
+
+            std::cout << std::endl << "Max degree of batch is " << max_degree_batch << std::endl;
+            std::cout << "Average degree of batch is " << sum_degree_batch / vertex_size << std::endl << std::endl;
+
+            thrust::copy(h_source_degrees_new.begin(), h_source_degrees_new.end(), d_source_degrees_new.begin());
+            thrust::copy(h_csr_offset_new.begin(), h_csr_offset_new.end(), d_csr_offset_new.begin());
+            thrust::copy(h_csr_edges_new.begin(), h_csr_edges_new.end(), d_csr_edges_new.begin());
+            thrust::copy(h_edge_blocks_count.begin(), h_edge_blocks_count.end(), d_edge_blocks_count.begin());
+            thrust::copy(h_prefix_sum_edge_blocks_new.begin(), h_prefix_sum_edge_blocks_new.end(), d_prefix_sum_edge_blocks_new.begin());
+
+            cudaMemcpy(d_batch_update_data, h_batch_update_data, (edge_size) * sizeof(unsigned long), cudaMemcpyHostToDevice);
+
+            unsigned long start_index = 0, end_index;
+            unsigned long remaining_edges = edge_size;
+
+            if(remaining_edges <= batch_size)
+                end_index = edge_size;
+            else
+                end_index = batch_size;
+
+            unsigned long current_batch = end_index - start_index;
+
+            std::cout << "Current batch is " << current_batch << std::endl;
+            std::cout << "Checkpoint" << std::endl;
+
+            thread_blocks = ceil(double(h_graph_prop->xDim) / THREADS_PER_BLOCK);
+
+            // I D I D I I D I I I  D  D
+            // 0 1 2 3 4 5 6 7 8 9 10 11
+            if(itr == 0 || itr == 2 || itr == 4 || itr == 5 || itr == 7 || itr == 8 || itr == 9) {
+                std::cout << std::endl << "RANDOM INSERTION BATCH " << itr << std::endl;
+                time = 0.0;
+                cudaEventRecord(start);
+                adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block,
+                                                                                     d_edge_blocks_count_pointer,
+                                                                                     total_edge_blocks_count_batch,
+                                                                                     vertex_size, edge_size,
+                                                                                     d_prefix_sum_edge_blocks_new_pointer,
+                                                                                     thread_blocks,
+                                                                                     device_vertex_dictionary, kk,
+                                                                                     current_batch, start_index,
+                                                                                     end_index,
+                                                                                     d_csr_offset_new_pointer,
+                                                                                     d_csr_edges_new_pointer);
+                cudaDeviceSynchronize();
+                update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
+//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+                cudaEventRecord(stop);
+                cudaEventSynchronize(stop);
+
+                cudaEventElapsedTime(&time, start, stop);
+                totalTime += time;
+                continue;
+            }
+
+            CUDA_CHECK_ERROR();
+
+            // deletion
+            std::cout << std::endl << "RANDOM DELETION BATCH " << itr << std::endl;
+            thrust::device_vector <unsigned long> d_source(BATCH_SIZE);
+            thrust::device_vector <unsigned long> d_destination(BATCH_SIZE);
+            unsigned long* d_source_pointer = thrust::raw_pointer_cast(d_source.data());
+            unsigned long* d_destination_pointer = thrust::raw_pointer_cast(d_destination.data());
+            cudaDeviceSynchronize();
+
+            time = 0.0;
+            cudaEventRecord(start);
+            device_prefix_sum_calculation_preprocessing<<< thread_blocks, THREADS_PER_BLOCK>>>(device_vertex_dictionary, vertex_size, d_prefix_sum_edge_blocks_new_pointer);
+            cudaDeviceSynchronize();
+            cudaEventRecord(stop);
+            cudaEventSynchronize(stop);
+
+            cudaEventElapsedTime(&time, start, stop);
+            totalTime += time;
+
+            time = 0.0;
+            cudaEventRecord(start);
+            thrust::exclusive_scan(thrust::device, d_prefix_sum_edge_blocks_new_pointer, d_prefix_sum_edge_blocks_new_pointer + vertex_size + 1, d_prefix_sum_edge_blocks_new_pointer);
+            cudaDeviceSynchronize();
+            cudaEventRecord(stop);
+            cudaEventSynchronize(stop);
+
+            cudaEventElapsedTime(&time, start, stop);
+            totalTime += time;
+
+            unsigned long h_data_structure_edge_block_count;
+            cudaMemcpy(&h_data_structure_edge_block_count, d_prefix_sum_edge_blocks_new_pointer + vertex_size, sizeof(unsigned long),cudaMemcpyDeviceToHost);
+
+            unsigned long* d_thread_count_vector_pointer = thrust::raw_pointer_cast(d_thread_count_vector.data());
+            unsigned long h_total_threads, *d_total_threads;
+            d_total_threads = d_thread_count_vector_pointer + vertex_size;
+
+            unsigned long decision_tree_true = (average_degree_batch < (max_degree_batch / 20)) && (BATCH_SIZE <= 10000000);
+            CUDA_CHECK_ERROR();
+            if((decision_tree_true)) {
+
+                thrust::copy(h_source.begin(), h_source.begin() + BATCH_SIZE, d_source.begin());
+                thrust::copy(h_destination.begin(), h_destination.begin() + BATCH_SIZE, d_destination.begin());
+                std::cout << "Starting Deletion" << std::endl;
+                // Below is the code for edge-centric batch deletes
+                thread_blocks = ceil(double(vertex_size) / THREADS_PER_BLOCK);
+                time = 0.0;
+                cudaEventRecord(start);
+                batched_delete_preprocessing_edge_centric<<< thread_blocks, 1024>>>(device_vertex_dictionary, vertex_size, d_csr_offset_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_degrees_new_pointer);
+                thread_blocks = ceil(double(batch_size) / THREADS_PER_BLOCK);
+                batched_delete_kernel_edge_centric<<< thread_blocks, 1024>>>(device_vertex_dictionary, vertex_size, batch_size, d_csr_offset_new_pointer, d_csr_edges_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_pointer, d_destination_pointer);
+                cudaEventRecord(stop);
+                cudaEventSynchronize(stop);
+
+                cudaEventElapsedTime(&time, start, stop);
+                totalTime += time;
+                CUDA_CHECK_ERROR();
+            }
+            else {
+                cudaMemcpy(d_batch_update_data, h_batch_update_data, (batch_size) * sizeof(unsigned long),
+                           cudaMemcpyHostToDevice);
+                thread_blocks = ceil(double(vertex_size) / THREADS_PER_BLOCK);
+                std::cout << "Starting Deletion" << std::endl;
+                time = 0.0;
+                cudaEventRecord(start);
+                batched_delete_preprocessing_edge_block_centric<<< thread_blocks, THREADS_PER_BLOCK>>>(
+                        device_vertex_dictionary, vertex_size, d_csr_offset_new_pointer,
+                        d_prefix_sum_edge_blocks_new_pointer, d_source_degrees_new_pointer, d_source_vector_pointer);
+//                thread_blocks = ceil(double(h_prefix_sum_edge_blocks_new[vertex_size]) / THREADS_PER_BLOCK);
+                thread_blocks = ceil(double(h_data_structure_edge_block_count) / THREADS_PER_BLOCK);
+                batched_delete_kernel_edge_block_centric<<< thread_blocks, THREADS_PER_BLOCK>>>(
+                        device_vertex_dictionary, vertex_size, batch_size, d_csr_offset_new_pointer,
+                        d_csr_edges_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_vector_pointer);
+//                cudaDeviceSynchronize();
+                cudaEventRecord(stop);
+                cudaEventSynchronize(stop);
+
+                cudaEventElapsedTime(&time, start, stop);
+                totalTime += time;
+                CUDA_CHECK_ERROR();
+            }
+
+
+            if(decision_tree_true)
+                std::cout << "Edge-Centric deletes taken" << std::endl << std::endl;
+            else
+                std::cout << "Edge-Block-Centric deletes taken" << std::endl << std::endl;
+
+//            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+            cudaDeviceSynchronize();
+
+            std::cout << "Printing the queue ptrs before compaction: " << std::endl;
+            printQueuePtrs<<<1,1>>>();
+            cudaDeviceSynchronize();
+            std::cout << std::endl;
+        }
+        CUDA_CHECK_ERROR();
+
+//        for(int itr = 0; itr < 3; ++itr){
+//            // insertion
+//            unsigned long average_degree_batch, max_degree_batch, sum_degree_batch;
+//            unsigned long kk = 1;
+//            std::cout << std::endl << "Iteration " << kk << std::endl;
+//
+//            total_edge_blocks_count_batch = 0;
+//
+//            generate_random_batch(h_graph_prop->xDim, BATCH_SIZE, h_source, h_destination, h_source_degrees_new, h_source_degrees);
+//            std::cout << "Generated random batch" << std::endl;
+//            generate_csr_batch(vertex_size, edge_size, max_degree, h_source, h_destination, h_csr_offset_new, h_csr_edges_new, h_source_degrees_new, h_edge_blocks_count, h_prefix_sum_edge_blocks_new, h_batch_update_data, BATCH_SIZE, total_batches, kk, space_remaining, &total_edge_blocks_count_batch, &init_time);
+//            std::cout << "Generated CSR batch" << std::endl;
+//
+//            total_edge_blocks_count_batch = h_prefix_sum_edge_blocks_new[vertex_size];
+//
+//            max_degree_batch = h_source_degrees_new[0];
+//            sum_degree_batch = h_source_degrees_new[0];
+//            for(unsigned long j = 1 ; j < vertex_size ; j++) {
+//
+//                if(h_source_degrees_new[j] > max_degree_batch)
+//                    max_degree_batch = h_source_degrees_new[j];
+//                sum_degree_batch += h_source_degrees_new[j];
+//            }
+//
+//            average_degree_batch = sum_degree_batch / vertex_size ;
+//
+//            std::cout << std::endl << "Max degree of batch is " << max_degree_batch << std::endl;
+//            std::cout << "Average degree of batch is " << sum_degree_batch / vertex_size << std::endl << std::endl;
+//
+//            thrust::copy(h_source_degrees_new.begin(), h_source_degrees_new.end(), d_source_degrees_new.begin());
+//            thrust::copy(h_csr_offset_new.begin(), h_csr_offset_new.end(), d_csr_offset_new.begin());
+//            thrust::copy(h_csr_edges_new.begin(), h_csr_edges_new.end(), d_csr_edges_new.begin());
+//            thrust::copy(h_edge_blocks_count.begin(), h_edge_blocks_count.end(), d_edge_blocks_count.begin());
+//            thrust::copy(h_prefix_sum_edge_blocks_new.begin(), h_prefix_sum_edge_blocks_new.end(), d_prefix_sum_edge_blocks_new.begin());
+//
+//            cudaMemcpy(d_batch_update_data, h_batch_update_data, (edge_size) * sizeof(unsigned long), cudaMemcpyHostToDevice);
+//
+//            unsigned long start_index = 0, end_index;
+//            unsigned long remaining_edges = edge_size;
+//
+//            if(remaining_edges <= batch_size)
+//                end_index = edge_size;
+//            else
+//                end_index = batch_size;
+//
+//            unsigned long current_batch = end_index - start_index;
+//
+//            std::cout << "Current batch is " << current_batch << std::endl;
+//            std::cout << "Checkpoint" << std::endl;
+//
+//            thread_blocks = ceil(double(h_graph_prop->xDim) / THREADS_PER_BLOCK);
+//
+//            time = 0.0;
+//            cudaEventRecord(start);
+//            adjacency_list_init_modded_v5<<< thread_blocks, THREADS_PER_BLOCK>>>(device_edge_block, d_edge_blocks_count_pointer, total_edge_blocks_count_batch, vertex_size, edge_size, d_prefix_sum_edge_blocks_new_pointer, thread_blocks, device_vertex_dictionary, kk, current_batch, start_index, end_index, d_csr_offset_new_pointer, d_csr_edges_new_pointer);
+//            cudaDeviceSynchronize();
+//            update_edge_queue<<< 1, 1>>>(total_edge_blocks_count_batch);
+////            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+////            cudaDeviceSynchronize();
+//            cudaEventRecord(stop);
+//            cudaEventSynchronize(stop);
+//
+//            cudaEventElapsedTime(&time, start, stop);
+//            totalTime += time;
+//
+//            if(itr == 0 || itr == 1) continue;
+//
+//            // deletion
+//            thrust::device_vector <unsigned long> d_source(BATCH_SIZE);
+//            thrust::device_vector <unsigned long> d_destination(BATCH_SIZE);
+//            unsigned long* d_source_pointer = thrust::raw_pointer_cast(d_source.data());
+//            unsigned long* d_destination_pointer = thrust::raw_pointer_cast(d_destination.data());
+//            cudaDeviceSynchronize();
+//
+//            time = 0.0;
+//            cudaEventRecord(start);
+//            device_prefix_sum_calculation_preprocessing<<< thread_blocks, THREADS_PER_BLOCK>>>(device_vertex_dictionary, vertex_size, d_prefix_sum_edge_blocks_new_pointer);
+////            cudaDeviceSynchronize();
+//            cudaEventRecord(stop);
+//            cudaEventSynchronize(stop);
+//
+//            cudaEventElapsedTime(&time, start, stop);
+//            totalTime += time;
+//
+//            time = 0.0;
+//            cudaEventRecord(start);
+//            thrust::exclusive_scan(thrust::device, d_prefix_sum_edge_blocks_new_pointer, d_prefix_sum_edge_blocks_new_pointer + vertex_size + 1, d_prefix_sum_edge_blocks_new_pointer);
+////            cudaDeviceSynchronize();
+//            cudaEventRecord(stop);
+//            cudaEventSynchronize(stop);
+//
+//            cudaEventElapsedTime(&time, start, stop);
+//            totalTime += time;
+//
+//            unsigned long* d_thread_count_vector_pointer = thrust::raw_pointer_cast(d_thread_count_vector.data());
+//            unsigned long h_total_threads, *d_total_threads;
+//            d_total_threads = d_thread_count_vector_pointer + vertex_size;
+//
+//            unsigned long decision_tree_true = (average_degree_batch < (max_degree_batch / 20)) && (BATCH_SIZE <= 10000000);
+//
+//            if((decision_tree_true)) {
+//
+//                thrust::copy(h_source.begin(), h_source.begin() + BATCH_SIZE, d_source.begin());
+//                thrust::copy(h_destination.begin(), h_destination.begin() + BATCH_SIZE, d_destination.begin());
+//                std::cout << "Starting Deletion" << std::endl;
+//                // Below is the code for edge-centric batch deletes
+//                thread_blocks = ceil(double(vertex_size) / THREADS_PER_BLOCK);
+//                time = 0.0;
+//                cudaEventRecord(start);
+//                batched_delete_preprocessing_edge_centric<<< thread_blocks, 1024>>>(device_vertex_dictionary, vertex_size, d_csr_offset_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_degrees_new_pointer);
+//                thread_blocks = ceil(double(batch_size) / THREADS_PER_BLOCK);
+//                batched_delete_kernel_edge_centric<<< thread_blocks, 1024>>>(device_vertex_dictionary, vertex_size, batch_size, d_csr_offset_new_pointer, d_csr_edges_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_pointer, d_destination_pointer);
+//                cudaEventRecord(stop);
+//                cudaEventSynchronize(stop);
+//
+//                cudaEventElapsedTime(&time, start, stop);
+//                totalTime += time;
+//            }
+//            else {
+//                cudaMemcpy(d_batch_update_data, h_batch_update_data, (batch_size) * sizeof(unsigned long),
+//                           cudaMemcpyHostToDevice);
+//                thread_blocks = ceil(double(vertex_size) / THREADS_PER_BLOCK);
+//                std::cout << "Starting Deletion" << std::endl;
+//                time = 0.0;
+//                cudaEventRecord(start);
+//                batched_delete_preprocessing_edge_block_centric<<< thread_blocks, THREADS_PER_BLOCK>>>(
+//                        device_vertex_dictionary, vertex_size, d_csr_offset_new_pointer,
+//                        d_prefix_sum_edge_blocks_new_pointer, d_source_degrees_new_pointer, d_source_vector_pointer);
+//                thread_blocks = ceil(double(h_prefix_sum_edge_blocks_new[vertex_size]) / THREADS_PER_BLOCK);
+//                batched_delete_kernel_edge_block_centric<<< thread_blocks, THREADS_PER_BLOCK>>>(
+//                        device_vertex_dictionary, vertex_size, batch_size, d_csr_offset_new_pointer,
+//                        d_csr_edges_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_vector_pointer);
+////                cudaDeviceSynchronize();
+//                cudaEventRecord(stop);
+//                cudaEventSynchronize(stop);
+//
+//                cudaEventElapsedTime(&time, start, stop);
+//                totalTime += time;
+//            }
+//
+//            if(decision_tree_true)
+//                std::cout << "Edge-Centric deletes taken" << std::endl << std::endl;
+//            else
+//                std::cout << "Edge-Block-Centric deletes taken" << std::endl << std::endl;
+//
+////            printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+//            cudaDeviceSynchronize();
+//
+//            std::cout << "Printing the queue ptrs before compaction: " << std::endl;
+//            printQueuePtrs<<<1,1>>>();
+//            cudaDeviceSynchronize();
+//            std::cout << std::endl;
+//        }
+
+//        printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+        cudaDeviceSynchronize();
+
+//        std::cout<< std::endl << "PREPROCESSING BEFORE COMPACTION FOR PARALLEL VERSION!" << std::endl;
+
+        clock_t push_area_time_start;
+        clock_t push_area_time_end;
+        float total_push_area_time = 0.0;
+        /*
+        // Find total holes per vertex and divide by edge block size
+        unsigned int *push_area;
+        cudaMalloc(&push_area, ((unsigned int) vertex_size) * sizeof(unsigned int));
+
+        thread_blocks = ceil((double) vertex_size / THREADS_PER_BLOCK);
+        push_area_time_start = clock();
+        findHolesPerVertex<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, push_area);
+        cudaDeviceSynchronize();
+        push_area_time_end = clock();
+
+        total_push_area_time += ((double) (push_area_time_end - push_area_time_start)) / CLOCKS_PER_SEC * 1000;
+
+        // Do prefix sum
+        unsigned int *push_area_prefixSum;
+        cudaMalloc(&push_area_prefixSum, ((unsigned int) vertex_size + 1) * sizeof(unsigned int));
+
+        thrust::device_ptr<unsigned int> push_area_ptr = thrust::device_pointer_cast(push_area);
+        thrust::device_ptr<unsigned int> push_area_prefixSum_ptr = thrust::device_pointer_cast(push_area_prefixSum);
+        cudaDeviceSynchronize();
+        push_area_time_start = clock();
+        thrust::exclusive_scan(thrust::device, push_area_ptr, push_area_ptr + ((unsigned int) vertex_size) + 1, push_area_prefixSum_ptr);
+        cudaDeviceSynchronize();
+        push_area_time_end = clock();
+
+        total_push_area_time += ((double) (push_area_time_end - push_area_time_start)) / CLOCKS_PER_SEC * 1000;
+
+//        print_sssp_values<<<1,1>>>(push_area_prefixSum);
+        std::cout << std::endl << "PREPROCESSING BEFORE COMPACTION FOR PARALLEL VERSION DONE!" << std::endl;
+        */
+
+        std::cout << std::endl << "PREPROCESSING BEFORE COMPACTION FOR LEVEL ORDER TRAVERSAL STARTING!" << std::endl;
+        // Find total edge blocks per vertex
+        clock_t level_order_queue_start;
+        clock_t level_order_queue_end;
+        float total_level_order_queue_time = 0.0;
+
+        unsigned int *blocks_per_vertex;
+        cudaMalloc(&blocks_per_vertex, ((unsigned int) vertex_size) * sizeof (unsigned int));
+
+        thread_blocks = ceil((double) vertex_size / THREADS_PER_BLOCK);
+        level_order_queue_start = clock();
+        findBlocksPerVertex<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, blocks_per_vertex);
+        cudaDeviceSynchronize();
+        level_order_queue_end = clock();
+
+        total_level_order_queue_time += ((double) (level_order_queue_end - level_order_queue_start)) / CLOCKS_PER_SEC * 1000;
+
+        // Do prefix sum
+        unsigned int *blocks_per_vertex_prefixSum;
+        cudaMalloc(&blocks_per_vertex_prefixSum, ((unsigned int) vertex_size + 1) * sizeof(unsigned int));
+
+        thrust::device_ptr<unsigned int> blocks_per_vertex_ptr = thrust::device_pointer_cast(blocks_per_vertex);
+        thrust::device_ptr<unsigned int> blocks_per_vertex_prefixSum_ptr = thrust::device_pointer_cast(blocks_per_vertex_prefixSum);
+        cudaDeviceSynchronize();
+        level_order_queue_start = clock();
+        thrust::exclusive_scan(thrust::device, blocks_per_vertex_ptr, blocks_per_vertex_ptr + ((unsigned int) vertex_size), blocks_per_vertex_prefixSum_ptr);
+        cudaDeviceSynchronize();
+        level_order_queue_end = clock();
+
+        total_level_order_queue_time += ((double) (level_order_queue_end - level_order_queue_start)) / CLOCKS_PER_SEC * 1000;
+        unsigned int *total_edge_blocks;
+        cudaMalloc(&total_edge_blocks, sizeof(unsigned int));
+        cudaDeviceSynchronize();
+
+        findTotalEdgeBlocks<<<1,1>>>((unsigned int)vertex_size, total_edge_blocks, blocks_per_vertex_prefixSum, blocks_per_vertex);
+        cudaDeviceSynchronize();
+
+        unsigned int *host_total_edge_blocks;
+        host_total_edge_blocks = (unsigned int *)malloc(sizeof(unsigned int));
+
+        cudaMemcpy(host_total_edge_blocks, total_edge_blocks, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+        cudaDeviceSynchronize();
+//        std::cout << std::endl << *host_total_edge_blocks << std::endl;
+
+        struct edge_block **level_order_queue;
+        cudaMalloc(&level_order_queue, (*host_total_edge_blocks) * ((unsigned int) sizeof (struct edge_block *)));
+        cudaDeviceSynchronize();
+        std::cout << std::endl << "PREPROCESSING BEFORE COMPACTION FOR LEVEL ORDER TRAVERSAL DONE!" << std::endl;
+        CUDA_CHECK_ERROR();
+        std::cout << std::endl << "STARTING COMPACTION!" << std::endl;
+        thread_blocks = ceil((double)(vertex_size) / THREADS_PER_BLOCK);
+//        std::cout << thread_blocks << std::endl;
+
+        compactTime = 0.0;
+        cudaEventRecord(start);
+//        compactionVertexCentric<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary);
+//        compactionVertexCentricParallel<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, push_area_prefixSum);
+//        compactionVertexCentricPostOrder<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary);
+        compactionVertexCentricLevelOrderQueue<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, blocks_per_vertex_prefixSum, level_order_queue);
+        cudaDeviceSynchronize();
+        cudaEventRecord(stop);
+        cudaEventSynchronize(stop);
+
+        cudaEventElapsedTime(&compactTime, start, stop);
+        totalTime += compactTime;
+        CUDA_CHECK_ERROR();
+        std::cout << std::endl << "COMPACTION DONE!" << std::endl;
+//        printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
+        cudaDeviceSynchronize();
+        std::cout << std::endl << "COMPACTION DONE!" << std::endl;
+
+        std::cout << std::endl << "Total Time: " << totalTime << " ms" << std::endl;
+        std::cout << "Compaction Kernel Time: " << compactTime << " ms" << std::endl;
+//        std::cout << "Push Area Computation Time: " << total_push_area_time << " ms" << std::endl;
+//        std::cout << "Total compaction Time: " << total_push_area_time + compactTime << " ms" << std::endl;
+        std::cout << "Level Order Queue Preprocessing Time: " << total_level_order_queue_time << " ms" << std::endl;
+        std::cout << "Total compaction Time: " << total_level_order_queue_time + compactTime << " ms" << std::endl;
+        std::cout << "Compaction Overhead: " << (total_push_area_time + compactTime) / totalTime << std::endl;
     }
     else {
         std::cout << "here" << std::endl;
@@ -9956,6 +11059,8 @@ int main(void) {
 
 
             delete_time = clock();
+            unsigned long h_data_structure_edge_block_count;
+            cudaMemcpy(&h_data_structure_edge_block_count, d_prefix_sum_edge_blocks_new_pointer + vertex_size, sizeof(unsigned long),cudaMemcpyDeviceToHost);
             // thread_blocks = ceil(double(vertex_size) / THREADS_PER_BLOCK);
             // batched_delete_preprocessing<<< thread_blocks, 1024>>>(device_vertex_dictionary, vertex_size, d_csr_offset_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_degrees_new_pointer);
             // thread_blocks = ceil(double(total_edge_blocks_count_batch) / THREADS_PER_BLOCK);
@@ -9993,7 +11098,8 @@ int main(void) {
                 // preprocessing = clock() - preprocessing;
 
                 // launch with number of threads equal to the edge blocks used by the data structure
-                thread_blocks = ceil(double(h_prefix_sum_edge_blocks_new[vertex_size]) / THREADS_PER_BLOCK);
+//                thread_blocks = ceil(double(h_prefix_sum_edge_blocks_new[vertex_size]) / THREADS_PER_BLOCK);
+                thread_blocks = ceil(double(h_data_structure_edge_block_count) / THREADS_PER_BLOCK);
                 // kernel_delete = clock();
                 batched_delete_kernel_edge_block_centric<<< thread_blocks, THREADS_PER_BLOCK>>>(device_vertex_dictionary, vertex_size, batch_size, d_csr_offset_new_pointer, d_csr_edges_new_pointer, d_prefix_sum_edge_blocks_new_pointer, d_source_vector_pointer);
                 // cudaDeviceSynchronize();
@@ -10102,25 +11208,45 @@ int main(void) {
             printKernelmodded_v2<<< 1, 1>>>(device_vertex_dictionary, vertex_size);
             cudaDeviceSynchronize();
 
-            unsigned int *device_total_edge_blocks;
-            cudaMalloc(&device_total_edge_blocks, sizeof(unsigned int));
-            unsigned int *host_total_edge_blocks = (unsigned int*)malloc(sizeof(unsigned int));
+//            unsigned int *device_total_edge_blocks;
+//            cudaMalloc(&device_total_edge_blocks, sizeof(unsigned int));
+//            unsigned int *host_total_edge_blocks = (unsigned int*)malloc(sizeof(unsigned int));
+//
+//            unsigned int *edge_block_count_per_vertex1;
+//            cudaMalloc(&edge_block_count_per_vertex1, ((unsigned int) h_graph_prop->xDim) * sizeof(unsigned int));
+//            unsigned int *edge_block_count_per_vertex2;
+//            cudaMalloc(&edge_block_count_per_vertex2, ((unsigned int) h_graph_prop->xDim + 1) * sizeof(unsigned int));
 
-            unsigned int *edge_block_count_per_vertex;
-            cudaMalloc(&edge_block_count_per_vertex, ((unsigned int) h_graph_prop->xDim + 1) * sizeof(unsigned int));
+            clock_t preprocess_time_start, preprocess_time_end;
+            double total_preprocess = 0.0;
 
-            countTotalEdgeBlocks<<<1,1>>>(h_graph_prop->xDim, device_total_edge_blocks, device_vertex_dictionary, edge_block_count_per_vertex);
+//            thread_blocks = ceil((double)vertex_size / THREADS_PER_BLOCK);
+//            thrust::device_ptr<unsigned int> edge_block_count_per_vertex_dptr = thrust::device_pointer_cast(edge_block_count_per_vertex1);
+//            thrust::device_ptr<unsigned int> edge_block_count_per_vertex_dptr2 = thrust::device_pointer_cast(edge_block_count_per_vertex2);
+//            preprocess_time_start = clock();
+////            countTotalEdgeBlocks<<<1,1>>>(h_graph_prop->xDim, device_total_edge_blocks, device_vertex_dictionary, edge_block_count_per_vertex);
+//            countEdgeBlocksPerVertex<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, edge_block_count_per_vertex1);
+//            cudaDeviceSynchronize();
+//            thrust::exclusive_scan(thrust::device, edge_block_count_per_vertex_dptr, edge_block_count_per_vertex_dptr + ((unsigned int)vertex_size) + 1, edge_block_count_per_vertex_dptr2);
+//            cudaDeviceSynchronize();
+//
+//            helper1<<<1,1>>>(vertex_size, edge_block_count_per_vertex2, device_total_edge_blocks);
+//            cudaDeviceSynchronize();
+//            preprocess_time_end = clock();
+//            cudaMemcpy(host_total_edge_blocks, device_total_edge_blocks, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+//            cudaDeviceSynchronize();
+
+//            print_sssp_values<<<thread_blocks, THREADS_PER_BLOCK>>>(dev);
+
+//            total_preprocess += ((double) (preprocess_time_end - preprocess_time_start)) / CLOCKS_PER_SEC * 1000;
+
+//            struct edge_block **compaction_stack;
+//            cudaMalloc(&compaction_stack, (*host_total_edge_blocks * ((unsigned int) sizeof(struct edge_block))));
+
+//            printedgeblockcount<<<1,1>>>(vertex_size, edge_block_count_per_vertex);
             cudaDeviceSynchronize();
-            cudaMemcpy(host_total_edge_blocks, device_total_edge_blocks, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-            cudaDeviceSynchronize();
 
-            struct edge_block **compaction_stack;
-            cudaMalloc(&compaction_stack, (*host_total_edge_blocks * ((unsigned int) sizeof(struct edge_block))));
-
-            printedgeblockcount<<<1,1>>>(vertex_size, edge_block_count_per_vertex);
-            cudaDeviceSynchronize();
-
-            std::cout << "total: " << *host_total_edge_blocks << std::endl;
+//            std::cout << "total: " << *host_total_edge_blocks << std::endl;
 
 
             // Compaction Start
@@ -10136,10 +11262,11 @@ int main(void) {
 
             compact_start = clock();
 //            compactionVertexCentricPostOrder<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary);
-//            compactionWithStack<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, edge_block_count_per_vertex, compaction_stack);
+//            compactionWithStack<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary, edge_block_count_per_vertex2, compaction_stack);
             compactionVertexCentric<<<thread_blocks, THREADS_PER_BLOCK>>>(vertex_size, device_vertex_dictionary);
             cudaDeviceSynchronize();
             compact_end = clock();
+            CUDA_CHECK_ERROR();
 
             compact_total_time = ((double) (compact_end - compact_start)) / CLOCKS_PER_SEC * 1000;
 
