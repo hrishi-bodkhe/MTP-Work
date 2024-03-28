@@ -19,7 +19,7 @@
 
 #define THREADS_PER_BLOCK 1024
 #define VERTEX_BLOCK_SIZE 51000000
-#define EDGE_BLOCK_SIZE 86
+#define EDGE_BLOCK_SIZE 56
 #define VERTEX_PREALLOCATE_LIST_SIZE 2000
 #define EDGE_PREALLOCATE_LIST_SIZE 250000000
 // #define BATCH_SIZE 21
@@ -8680,7 +8680,7 @@ __global__ void recoveredMemoryKernel2(unsigned int* num_blocks_before, unsigned
     printf("\n");
 }
 
-__global__ void recoveredMemoryPercentage(unsigned int* num_blocks_before, unsigned int* num_blocks_after, unsigned int* totalEdgeBlocks){
+__global__ void recoveredMemoryPercentage(unsigned int* num_blocks_before, unsigned int* num_blocks_after, unsigned int* totalEdgeBlocks, struct vertex_dictionary_structure *device_vertex_dictionary){
     d_e_queue.rear %= EDGE_PREALLOCATE_LIST_SIZE;
     d_e_queue.front %= EDGE_PREALLOCATE_LIST_SIZE;
     printf("Rear After: %u\n", d_e_queue.rear);
@@ -8695,7 +8695,12 @@ __global__ void recoveredMemoryPercentage(unsigned int* num_blocks_before, unsig
     printf("Recovered Memory: %u\n", recovered_memory);
     printf("\n");
 
-    unsigned int total_memory =  
+    unsigned int total_memory =  (unsigned int)sizeof(device_vertex_dictionary) + ((*totalEdgeBlocks) * ((unsigned int)sizeof(struct edge_block)));
+    total_memory /= (1024 * 1024);
+    printf("Total Memory: %u\n", total_memory);
+    double recovered_percent = ((double)recovered_memory / total_memory) * 100;
+    printf("% Recovered Memory: %f\n", recovered_percent);
+    printf("\n");
 }
 
 __global__ void countTotalEdgeBlocks(unsigned int totalVertices, unsigned int *totalEdgeBlocks, struct vertex_dictionary_structure *device_vertex_dictionary, unsigned int *edge_block_count_per_vertex){
@@ -9535,13 +9540,13 @@ int main(void) {
     // char fileLoc[30] = "delaunay_n16.mtx";
     // char fileLoc[30] = "delaunay_n17.mtx";
     // char fileLoc[30] = "fe-ocean.mtx";
-//     char fileLoc[40] = "../../Graphs/co-papers-dblp.mtx";
+     char fileLoc[40] = "../../Graphs/co-papers-dblp.mtx";
 //     char fileLoc[40] = "../../Graphs/co-papers-citeseer.mtx";
 //     char fileLoc[40] = "../../Graphs/hugetrace-00020.mtx";
 //      char fileLoc[50] = "../../Graphs/channel-500x100x100-b050.mtx";
 //     char fileLoc[30] = "../../Graphs/kron_g500-logn16.mtx";
     // char fileLoc[30] = "kron_g500-logn17.mtx";
-     char fileLoc[50] = "../../Graphs/kron_g500-logn21.mtx";
+//     char fileLoc[50] = "../../Graphs/kron_g500-logn21.mtx";
     // char fileLoc[30] = "delaunay_n22.mtx";
     // char fileLoc[30] = "delaunay_n23.mtx";
 //     char fileLoc[30] = "../../Graphs/delaunay_n24.mtx";
@@ -10654,6 +10659,12 @@ int main(void) {
         cudaDeviceSynchronize();
         std::cout << std::endl << "PREPROCESSING BEFORE COMPACTION FOR LEVEL ORDER TRAVERSAL DONE!" << std::endl;
         CUDA_CHECK_ERROR();
+
+        unsigned int *num_blocks_before;
+        cudaMalloc(&num_blocks_before, sizeof(unsigned int));
+        recoveredMemoryKernel1<<<1,1>>>(num_blocks_before);
+        cudaDeviceSynchronize();
+
         std::cout << std::endl << "STARTING COMPACTION!" << std::endl;
         thread_blocks = ceil((double)(vertex_size) / THREADS_PER_BLOCK);
 //        std::cout << thread_blocks << std::endl;
@@ -10683,6 +10694,11 @@ int main(void) {
         std::cout << "Level Order Queue Preprocessing Time: " << total_level_order_queue_time << " ms" << std::endl;
         std::cout << "Total compaction Time: " << total_level_order_queue_time + compactTime << " ms" << std::endl;
         std::cout << "Compaction Overhead: " << (total_push_area_time + compactTime) / totalTime << std::endl;
+
+        unsigned int *num_blocks_after;
+        cudaMalloc(&num_blocks_after, sizeof(unsigned int));
+        recoveredMemoryPercentage<<<1,1>>>(num_blocks_before, num_blocks_after, total_edge_blocks, device_vertex_dictionary);
+        cudaDeviceSynchronize();
     }
     else {
         std::cout << "here" << std::endl;
