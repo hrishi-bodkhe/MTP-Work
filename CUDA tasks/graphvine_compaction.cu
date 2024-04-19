@@ -19,7 +19,7 @@
 
 #define THREADS_PER_BLOCK 1024
 #define VERTEX_BLOCK_SIZE 51000000
-#define EDGE_BLOCK_SIZE 2
+#define EDGE_BLOCK_SIZE 15
 #define VERTEX_PREALLOCATE_LIST_SIZE 2000
 #define EDGE_PREALLOCATE_LIST_SIZE 160000000
 #define BATCH_SIZE 21
@@ -13164,15 +13164,213 @@ void compactionFunction(struct vertex_dictionary_structure *device_vertex_dictio
     cudaDeviceSynchronize();
 }
 
+__global__ void printDist(unsigned int vertices, unsigned int *dist){
+    unsigned int limit;
+    if(vertices >= 40) limit = 40;
+    else limit = vertices;
+    for(unsigned int u = 0; u < limit; ++u) printf("%u ", dist[u]);
+    printf("\n");
+}
+
+__global__ void countPerVertexEdge(unsigned int vertices, unsigned int *edge_count_per_vertex,
+                                   struct vertex_dictionary_structure *device_vertex_dictionary){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= vertices) return;
+
+    edge_count_per_vertex[id] = device_vertex_dictionary->active_edge_count[id];
+}
+
+__global__ void triangleCountingEdgeCentricNaive(unsigned int total_edges, unsigned int total_vertices, unsigned int *edge_count_per_vertex_prefixSum, unsigned int* tc_per_vertex,
+                                                 struct vertex_dictionary_structure *device_vertex_dictionary){
+    unsigned int id = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if(id >= total_edges) return;
+
+    // 1. Find source vertex for the edge using binary search
+    unsigned int start = 0;
+    unsigned int end = total_vertices;
+    unsigned int src = -1;
+
+    while(start <= end){
+        unsigned int mid = start + (end - start) / 2;
+
+        if(edge_count_per_vertex_prefixSum[mid] == id){
+            src = mid;
+            break;
+        }
+        else if(edge_count_per_vertex_prefixSum[mid] < id){
+            src = mid;
+            start = mid + 1;
+        }
+        else end = mid - 1;
+    }
+
+    struct edge_block *root = device_vertex_dictionary->edge_block_address[src];
+
+//    printf("id: %u, Edge src: %u\n", id, src);
+
+    // 2. Find edge block corresponding to the given edge
+    unsigned int edge_offset_in_adjacency = id - edge_count_per_vertex_prefixSum[src];
+//    printf("Edge offset in adjacency: %u\n", edge_offset_in_adjacency);
+
+    unsigned int edge_block_index = edge_offset_in_adjacency / EDGE_BLOCK_SIZE;
+//    printf("Edge block index: %u\n", edge_block_index);
+    unsigned long bitString = bit_string_lookup[edge_block_index];
+    struct edge_block *req_edge_block = traverse_bit_string(root, bitString);
+
+    // 3. Find destination for the edge
+    unsigned int edge_offset_in_edge_block = edge_offset_in_adjacency % EDGE_BLOCK_SIZE;
+    unsigned int dest = (unsigned int) req_edge_block->edge_block_entry[edge_offset_in_edge_block].destination_vertex - 1;
+
+//    printf("id: %u, Edge destination: %u\n", id, dest);
+
+    // 4. TC logic
+    unsigned int third_vertex;
+    unsigned long dest_bitString;
+
+    struct edge_block *dest_root = device_vertex_dictionary->edge_block_address[dest];
+    struct edge_block *temp;
+    unsigned int dest_edge_block_index;
+
+    ++edge_offset_in_edge_block;
+    while (req_edge_block){
+        while (edge_offset_in_edge_block < EDGE_BLOCK_SIZE){
+            third_vertex = (unsigned int) req_edge_block->edge_block_entry[edge_offset_in_edge_block].destination_vertex;
+
+            if(third_vertex == INFTY) continue;
+            if(third_vertex == 0) break;
+
+            --third_vertex;
+
+            // Find whether this vertex is adjacent to dest or not
+            temp = dest_root;
+            dest_edge_block_index = 0;
+            while(temp){
+                unsigned int v;
+                int endFlag = 0;
+
+                for(int e = 0; e < EDGE_BLOCK_SIZE; ++e){
+                    v = (unsigned int) temp->edge_block_entry[e].destination_vertex;
+
+                    if(v == 0) {
+                        endFlag = 1;
+                        break;
+                    }
+
+                    --v;
+
+                    if(v == third_vertex){
+                        atomicAdd(&tc_per_vertex[src], 1);
+                        endFlag = 1;
+                        break;
+                    }
+                }
+                if(endFlag) break;
+
+                ++dest_edge_block_index;
+                dest_bitString = bit_string_lookup[dest_edge_block_index];
+                temp = traverse_bit_string(dest_root, dest_bitString);
+            }
+
+            ++edge_offset_in_edge_block;
+        }
+
+        ++edge_block_index;
+        bitString = bit_string_lookup[edge_block_index];
+        req_edge_block = traverse_bit_string(root, bitString);
+        edge_offset_in_edge_block = 0;
+    }
+}
+
+void triangleCount(struct vertex_dictionary_structure *device_vertex_dictionary, struct graph_properties *h_graph_prop){
+    clock_t start, end;
+    clock_t prefix_start, prefix_end;
+    float total_preprocess_time = 0.0;
+    float tc_kernel_time = 0.0;
+    float total_time = 0.0;
+
+    // 1. Find total edges per vertex in an array
+    std::cout << "PREPROCESSING BEFORE LAUNCHING TC" << std::endl;
+
+    unsigned int total_vertices = h_graph_prop->xDim;
+
+    unsigned int *edge_count_per_vertex;
+    cudaMalloc(&edge_count_per_vertex, total_vertices * sizeof(unsigned int));
+
+    unsigned int thread_blocks = ceil((double) total_vertices / THREADS_PER_BLOCK);
+    prefix_start = clock();
+    countPerVertexEdge<<<thread_blocks, THREADS_PER_BLOCK>>>(total_vertices, edge_count_per_vertex, device_vertex_dictionary);
+    cudaDeviceSynchronize();
+    prefix_end = clock();
+
+    total_preprocess_time += ((double) (prefix_end - prefix_start)) / CLOCKS_PER_SEC * 1000;
+
+    // 2. Do prefix Sum of the above array
+    unsigned int *edge_count_per_vertex_prefixSum;
+    cudaMalloc(&edge_count_per_vertex_prefixSum, (total_vertices + 1) * sizeof(unsigned int));
+
+    thrust::device_ptr<unsigned int> edge_count_per_vertex_ptr = thrust::device_pointer_cast(edge_count_per_vertex);
+    thrust::device_ptr<unsigned int> edge_count_per_vertex_prefixSum_ptr = thrust::device_pointer_cast(edge_count_per_vertex_prefixSum);
+    cudaDeviceSynchronize();
+
+    prefix_start = clock();
+    thrust::exclusive_scan(thrust::device, edge_count_per_vertex_ptr, edge_count_per_vertex_ptr + total_vertices, edge_count_per_vertex_prefixSum_ptr);
+    cudaDeviceSynchronize();
+    prefix_end = clock();
+
+    total_preprocess_time += ((double) (prefix_end - prefix_start)) / CLOCKS_PER_SEC * 1000;
+
+    unsigned int *total_edges;
+    cudaMalloc(&total_edges, sizeof(unsigned int));
+    cudaDeviceSynchronize();
+
+    findTotalEdgeBlocks<<<1,1>>>(total_vertices, total_edges, edge_count_per_vertex_prefixSum, edge_count_per_vertex);
+    cudaDeviceSynchronize();
+
+    unsigned int *host_total_edges;
+    host_total_edges = (unsigned int *)malloc(sizeof(unsigned int));
+
+    cudaMemcpy(host_total_edges, total_edges, sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+
+    // 3. Allocate space for tc
+    unsigned int *tc_per_vertex;
+    cudaMalloc(&tc_per_vertex, total_vertices * sizeof(tc_per_vertex));
+
+    std::cout << "PREPROCESSING FOR TC DONE!" << std::endl;
+
+    std::cout << "LAUNCHING EDGE-CENTRIC TC!!!" << std::endl;
+
+    // 4. Launch edge centric kernel to calculate TC
+    thread_blocks = ceil((double) *host_total_edges / THREADS_PER_BLOCK);
+    start = clock();
+    triangleCountingEdgeCentricNaive<<<thread_blocks, THREADS_PER_BLOCK>>>(*host_total_edges, total_vertices, edge_count_per_vertex_prefixSum, tc_per_vertex, device_vertex_dictionary);
+    cudaDeviceSynchronize();
+    end = clock();
+
+    tc_kernel_time += ((double) (end - start)) / CLOCKS_PER_SEC * 1000;
+    total_time = total_preprocess_time + tc_kernel_time;
+
+    std::cout << "EDGE-CENTRIC TC KERNEL FINISHED!" << std::endl;
+    std::cout << "PRINTING TC VALUES-->" << std::endl;
+    printDist<<<1,1>>>(total_vertices, tc_per_vertex);
+    cudaDeviceSynchronize();
+
+    std::cout << "Total Time for Preprocessing: " << total_preprocess_time << std::endl;
+    std::cout << "Total Time for TC Kernel: " << tc_kernel_time << std::endl;
+    std::cout << "Total Time for TC: " << total_time << std::endl;
+}
+
 int main(void) {
     double fullTime = 0.0;
 
-    char fileLoc[20] = "./MTX/input.mtx";
+//    char fileLoc[30] = "../../Graphs/input.mtx";
     // char fileLoc[20] = "input1.mtx";
     // char fileLoc[20] = "inputSSSP.mtx";
     // char fileLoc[20] = "chesapeake_mod.mtx";
     // char fileLoc[30] = "klein-b1.mtx";
-    // char fileLoc[30] = "chesapeake.mtx";
+//     char fileLoc[30] = "../../Graphs/chesapeake.mtx";
     // char fileLoc[30] = "bio-celegansneural.mtx";
     // char fileLoc[30] = "inf-luxembourg_osm.mtx";
     // char fileLoc[30] = "rgg_n_2_16_s0.mtx";
@@ -13182,19 +13380,19 @@ int main(void) {
     // char fileLoc[30] = "delaunay_n16.mtx";
     // char fileLoc[30] = "delaunay_n17.mtx";
     // char fileLoc[30] = "fe-ocean.mtx";
-    // char fileLoc[30] = "co-papers-dblp.mtx";
-    // char fileLoc[30] = "co-papers-citeseer.mtx";
-    // char fileLoc[30] = "hugetrace-00020.mtx";
-    // char fileLoc[30] = "channel-500x100x100-b050.mtx";
+//     char fileLoc[40] = "../../Graphs/co-papers-dblp.mtx";
+//     char fileLoc[40] = "../../Graphs/co-papers-citeseer.mtx";
+//     char fileLoc[40] = "../../Graphs/hugetrace-00020.mtx";
+//     char fileLoc[50] = "../../Graphs/channel-500x100x100-b050.mtx";
     // char fileLoc[30] = "kron_g500-logn16.mtx";
     // char fileLoc[30] = "kron_g500-logn17.mtx";
-    // char fileLoc[40] = "./MTX/kron_g500-logn21.mtx";
+//     char fileLoc[40] = "../../Graphs/kron_g500-logn21.mtx";
     // char fileLoc[30] = "delaunay_n22.mtx";
     // char fileLoc[30] = "delaunay_n23.mtx";
-    // char fileLoc[30] = "delaunay_n24.mtx";
-    // char fileLoc[30] = "inf-europe_osm.mtx";
+//     char fileLoc[40] = "../../Graphs/delaunay_n24.mtx";
+//     char fileLoc[40] = "../../Graphs/inf-europe_osm.mtx";
     // char fileLoc[30] = "rgg_n_2_23_s0.mtx";
-    // char fileLoc[30] = "rgg_n_2_24_s0.mtx";
+     char fileLoc[40] = "../../Graphs/rgg_n_2_24_s0.mtx";
     // char fileLoc[30] = "nlpkkt240.mtx";
     // char fileLoc[30] = "uk-2005.mtx";
     // char fileLoc[30] = "twitter7.mtx";
@@ -14823,7 +15021,7 @@ int main(void) {
 
     while(exitFlag) {
 
-        std::cout << std::endl << "Please enter any of the below options" << std::endl << "1. Search for and edge" << std::endl << "2. Delete an edge" << std::endl << "3. Print Adjacency" << std::endl << "4. PageRank Calculation" << std::endl << "5. Static Traingle Counting" << std::endl << "6. Single-Source Shortest Path" << std::endl << "7. Exit" << std::endl << "8. Insert Batch" << std::endl << "9. Delete Batch" << std::endl << "10. Compaction Overhead" << std::endl;
+        std::cout << std::endl << "Please enter any of the below options" << std::endl << "1. Search for and edge" << std::endl << "2. Delete an edge" << std::endl << "3. Print Adjacency" << std::endl << "4. PageRank Calculation" << std::endl << "5. Static Traingle Counting" << std::endl << "6. Single-Source Shortest Path" << std::endl << "7. Exit" << std::endl << "8. Insert Batch" << std::endl << "9. Delete Batch" << std::endl << "10. Compaction Overhead" << std::endl << "11. Edge-Centric TC" << std::endl;
         scanf("%lu", &menuChoice);
 
         switch(menuChoice) {
@@ -15688,7 +15886,8 @@ int main(void) {
             case 10 :
                 fullTime += ((double) init_time / CLOCKS_PER_SEC * 1000);
                 compactionFunction(device_vertex_dictionary, h_graph_prop, fullTime);
-
+            case 11:
+                triangleCount(device_vertex_dictionary, h_graph_prop);
             default :;
 
         }
